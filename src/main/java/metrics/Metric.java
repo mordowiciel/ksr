@@ -1,3 +1,5 @@
+package metrics;
+
 import java.util.List;
 
 public interface Metric {

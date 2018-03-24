@@ -1,6 +1,9 @@
+package metrics;
+
 import java.util.List;
 
 public class EuclideanMetric implements Metric {
+
     @Override
     public double calculateDistance(List<Double> a, List<Double> b) {
 

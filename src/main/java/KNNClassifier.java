@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import metrics.Metric;
+
 public class KNNClassifier {
 
     private final int kNeighboursCount;
@@ -25,12 +27,6 @@ public class KNNClassifier {
             double distance = metric.calculateDistance(subjectToClassify.getVector(), trainingObject.getVector());
             trainingSetDistances.put(trainingObject, distance);
         }
-
-        // Sort distances
-//        Map<ClassificationSubject, Double> kNeighbours = trainingSetDistances.entrySet().stream()
-//                .sorted(Map.Entry.comparingByValue())
-//                .limit(kNeighboursCount)
-//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // Sort distances
         List<ClassificationSubject> kNeighbours = trainingSetDistances.entrySet().stream()

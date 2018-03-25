@@ -1,6 +1,6 @@
 .idea/
 target/
-reuters/
+reuters_data/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup

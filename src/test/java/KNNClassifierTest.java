@@ -1,11 +1,11 @@
-import static org.mockito.Mockito.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import knn.ClassificationSubject;
+import knn.KNNClassifier;
 import metrics.EuclideanMetric;
 
 public class KNNClassifierTest {

@@ -37,7 +37,7 @@ public class StopwordsRemoval {
         tokenStream = new StopFilter(LUCENE_VERSION, tokenStream, this.stopWordsSet);
         CharTermAttribute token = tokenStream.getAttribute(CharTermAttribute.class);
         while (tokenStream.incrementToken()){
-            if (stringBuilder.length() > 0) {
+            if (stringBuilder.length() > 0) { 
                 stringBuilder.append(" ");
             }
             stringBuilder.append(token.toString());

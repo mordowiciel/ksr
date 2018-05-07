@@ -147,10 +147,11 @@ public class ReutersDataset extends Dataset<Article> {
                     // Read and append lines until we have a complete reuters news
                     if (line.indexOf("</REUTERS") == -1) {
                         buffer.append(line);
+                        buffer.append(StringUtils.SPACE);
                         continue;
                     }
 
-                    available.addAll(parseString(buffer.toString()));
+                    available.addAll(parseString(StringUtils.normalizeSpace(buffer.toString())));
 
                     if (!available.isEmpty()) {
                         return;

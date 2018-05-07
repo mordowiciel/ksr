@@ -49,7 +49,10 @@ public class KNNClassifier {
             }
         }
 
-        String classifiedLabel = Collections.max(labelCount.entrySet(), Map.Entry.comparingByValue()).getKey();
+        String classifiedLabel = Collections
+                .max(labelCount.entrySet(), Map.Entry.comparingByValue())
+                .getKey();
+
         return classifiedLabel;
     }
 }

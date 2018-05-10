@@ -1,3 +1,5 @@
+package main;
+
 import static org.apache.commons.io.FileUtils.readLines;
 
 import java.io.File;
@@ -6,12 +8,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+
+import main.dataset.Article;
 
 public class TextUtils {
 
@@ -70,5 +77,20 @@ public class TextUtils {
         });
 
         return new ArrayList<>(splittedWords);
+    }
+
+    public static Set<String> getUniqueWords(Article article) {
+        return new HashSet<>(getAllWords(article));
+    }
+
+    public static Map<String, Long> getAllWordsCounts(Article article) {
+        return getAllWords(article)
+                .stream()
+                .collect(Collectors.groupingBy(Function.identity(), TreeMap::new, Collectors.counting()));
+    }
+
+    public static List<String> getAllWords(Article entity) {
+        return Arrays
+                .asList(entity.getBody().toLowerCase().split("\\W+"));
     }
 }

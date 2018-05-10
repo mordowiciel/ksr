@@ -1,4 +1,4 @@
-package dataset;
+package main.dataset;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +11,7 @@ import java.util.LinkedList;
 public abstract class Dataset<T> implements Iterable<T>, Serializable {
 
     /**
-     * Return all items of the dataset (except if it's an infinite dataset).
+     * Return all items of the main.dataset (except if it's an infinite main.dataset).
      * @return
      */
     public LinkedList<T> getAll() {
@@ -23,7 +23,7 @@ public abstract class Dataset<T> implements Iterable<T>, Serializable {
     }
 
     /**
-     * Get the first items of the dataset.
+     * Get the first items of the main.dataset.
      * @param count
      * @return
      */
@@ -40,9 +40,9 @@ public abstract class Dataset<T> implements Iterable<T>, Serializable {
 
 
     /**
-     * Serialize and save this dataset to an output stream (might be a file).
+     * Serialize and save this main.dataset to an output stream (might be a file).
      * The java ReutersDataset class gets serialized and saved, not the actual
-     * elements of the dataset.
+     * elements of the main.dataset.
      * @param out
      * @throws IOException if output file does not exist
      */
@@ -52,7 +52,7 @@ public abstract class Dataset<T> implements Iterable<T>, Serializable {
     }
 
     /**
-     * Load a saved dataset.
+     * Load a saved main.dataset.
      *
      * @param input
      * @return

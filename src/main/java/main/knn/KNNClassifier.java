@@ -4,26 +4,29 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import main.TextUtils;
 import main.dataset.Article;
 import main.metrics.Metric;
 import main.similarity.SimilarityUtils;
+import main.vectorization.TermFrequency;
 
 public class KNNClassifier {
 
     private final int kNeighboursCount;
-    private final List<Article> trainingSet;
-    private final List<String> keywords;
+    private final Set<Article> trainingSet;
+    private final Set<String> keywords;
+    private final Set<String> stopwords;
     private final Metric metric;
 
-    public KNNClassifier(int kNeighboursCount, List<Article> trainingSet,
-                         List<String> keywords, Metric metric) {
+    public KNNClassifier(int kNeighboursCount, Set<Article> trainingSet,
+                         Set<String> keywords, Set<String> stopwords, Metric metric) {
         this.kNeighboursCount = kNeighboursCount;
         this.trainingSet = trainingSet;
         this.keywords = keywords;
+        this.stopwords = stopwords;
         this.metric = metric;
     }
 
@@ -34,22 +37,17 @@ public class KNNClassifier {
 
         Map<Article, Double> trainingSetDistances = new HashMap<>();
 
+//        Map<String, Double> allWordsToClassify = TextUtils.getAllWordsCounts(articleToClassify, stopwords, keywords);
+        Map<String, Double> allWordsToClassify = TermFrequency.getTDMap(trainingSet, articleToClassify, keywords, stopwords);
+
+        System.out.println(allWordsToClassify);
+
         // Calculate distances
         System.out.println("Calculating distances for objects in training set...");
         for (Article trainingObject : trainingSet) {
 
-            Map<String, Long> allWordsTraining = TextUtils.getAllWordsCounts(trainingObject);
-            Map<String, Long> allWordsToClassify = TextUtils.getAllWordsCounts(articleToClassify);
-
-            keywords.forEach(keyword -> {
-                if (allWordsTraining.containsKey(keyword)) {
-                    allWordsTraining.put(keyword, 0L);
-                }
-
-                if (!allWordsToClassify.containsKey(keyword)) {
-                    allWordsToClassify.put(keyword, 0L);
-                }
-            });
+//            Map<String, Double> allWordsTraining = TextUtils.getAllWordsCounts(trainingObject, stopwords, keywords);
+            Map<String, Double> allWordsTraining = TermFrequency.getTDMap(trainingSet, trainingObject, keywords, stopwords);
 
             double distance = SimilarityUtils.calculateCosineAmplitude(allWordsTraining, allWordsToClassify);
             trainingSetDistances.put(trainingObject, distance);

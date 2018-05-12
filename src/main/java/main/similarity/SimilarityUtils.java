@@ -7,27 +7,30 @@ import java.util.Set;
 
 public class SimilarityUtils {
 
-    public static double calculateCosineAmplitude(Map<String, Long> m1, Map<String, Long> m2) {
 
-        Set<String> m1Keys = m1.keySet();
+    public static double calculateCosineAmplitude(Map<String, Double> m1, Map<String, Double> m2) {
 
         double sumUpper = 0L;
+        Set<String> m1Keys = m1.keySet();
         for (String m1Key : m1Keys) {
-            Long wordCount1 = m1.get(m1Key);
-            Long wordCount2 = m1.get(m1Key);
+            Double wordCount1 = m1.get(m1Key);
+            Double wordCount2 = m2.get(m1Key);
+            if (wordCount2 == null) {
+                wordCount2 = 0.0;
+            }
             sumUpper += wordCount1 * wordCount2;
         }
 
         double firstLower = 0L;
         double secondLower = 0L;
-        List<Long> m1Values = new ArrayList<>(m1.values());
-        List<Long> m2Values = new ArrayList<>(m2.values());
+        List<Double> m1Values = new ArrayList<>(m1.values());
+        List<Double> m2Values = new ArrayList<>(m2.values());
 
-        for (Long m1Value : m1Values) {
+        for (Double m1Value : m1Values) {
             firstLower += Math.pow(m1Value, 2);
         }
 
-        for (Long m2Value : m2Values) {
+        for (Double m2Value : m2Values) {
             secondLower += Math.pow(m2Value, 2);
         }
 

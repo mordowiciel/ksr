@@ -79,18 +79,83 @@ public class TextUtils {
         return new ArrayList<>(splittedWords);
     }
 
-    public static Set<String> getUniqueWords(Article article) {
-        return new HashSet<>(getAllWords(article));
-    }
 
-    public static Map<String, Long> getAllWordsCounts(Article article) {
-        return getAllWords(article)
+    public static Map<String, Double> getAllWordsCounts(Article article, Set<String> stopwords, Set<String> keywords) {
+        Map<String, Long> allWordsCount = getAllWords(article, stopwords, keywords)
                 .stream()
                 .collect(Collectors.groupingBy(Function.identity(), TreeMap::new, Collectors.counting()));
+
+        return allWordsCount.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
+
+                    double value = e.getValue();
+                    return value;
+                }));
+//        return allWordsCount.entrySet().stream()
+//                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
+//
+//                    double value = e.getValue();
+//                    double wordsCount = allWordsCount.size();
+//                    double tf = value / wordsCount;
+//                    return tf;
+//                }));
     }
 
-    public static List<String> getAllWords(Article entity) {
-        return Arrays
-                .asList(entity.getBody().toLowerCase().split("\\W+"));
+    public static List<String> getAllWords(Article entity, Set<String> stopwords) {
+
+        List<String> bodyWords = getWordsInString(entity.getBody());
+        List<String> titleWords = getWordsInString(entity.getTitle());
+
+        List<String> articleWords = new ArrayList<>(bodyWords);
+        articleWords.addAll(titleWords);
+
+        try {
+            articleWords = getWordsInString(entity.getBody()).stream()
+                    .map(TextUtils::removeSpecialCharacters)
+                    .map(String::toLowerCase)
+                    .filter(word -> !stopwords.contains(word) && word.length() > 2)
+                    .collect(Collectors.toList());
+            return articleWords;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return articleWords;
+    }
+
+    public static List<String> getAllWords(Article entity, Set<String> stopwords, Set<String> keywords) {
+
+        List<String> bodyWords = getWordsInString(entity.getBody());
+        List<String> titleWords = getWordsInString(entity.getTitle());
+
+        List<String> articleWords = new ArrayList<>(bodyWords);
+        articleWords.addAll(titleWords);
+
+
+        try {
+            articleWords = getWordsInString(entity.getBody()).stream()
+                    .map(TextUtils::removeSpecialCharacters)
+                    .map(String::toLowerCase)
+                    .filter(word -> !stopwords.contains(word) && word.length() > 2)
+                    .filter(word -> keywords.contains(word))
+                    .collect(Collectors.toList());
+            return articleWords;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return articleWords;
+
+
+//        List<String> words = getWordsInString(entity.getBody());
+//        words = removeSpecialCharacters(words);
+//        try {
+//            words = removeStopwords(words);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return words;
+
+//        return Arrays
+//                .asList(entity.getBody().toLowerCase().split("\\W+"));
     }
 }

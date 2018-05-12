@@ -42,18 +42,38 @@ public class Main {
 
         System.out.println("Successfully loaded articles to memory : " + testArticles.size());
 
-        List<String> keywords = FileUtils.readLines(new File("bag.txt"), "UTF-8");
-        System.out.println("Successfully read bag.txt into memory");
 
-
-        List<Article> trainingSet = testArticles.subList(0, 8000);
-        List<Article> testSet = testArticles.subList(8000, 12000);
+        Set<Article> trainingSet = new HashSet<>(testArticles.subList(0, 8000));
+        Set<Article> testSet = new HashSet<>(testArticles.subList(8000, 12000));
         System.out.println("Successfully splitted training set and test set");
 
-        generateBagOfWords(testArticles);
+        Set<String> stopwords = new HashSet<>(FileUtils.readLines(new File("stopwords.txt"), "utf-8"));
+        generateBagOfWords(testArticles, stopwords);
 
-        KNNClassifier knnClassifier = new KNNClassifier(3, trainingSet, keywords, new EuclideanMetric());
-        AtomicInteger properlyClassified = new AtomicInteger(0);
+        Set<String> keywords = new HashSet<>(FileUtils.readLines(new File("bag.txt"), "UTF-8"));
+        System.out.println("Successfully read bag.txt into memory");
+
+        KNNClassifier knnClassifier = new KNNClassifier(3, trainingSet, keywords, stopwords, new EuclideanMetric());
+        AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedUK = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedCanada = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedJapan = new AtomicInteger(0);
+
+        long testSetWestGermany = testSet.stream().filter(testElement -> testElement.getPlaces().get(0).equals("west-germany")).count();
+        long testSetUSA = testSet.stream().filter(testElement -> testElement.getPlaces().get(0).equals("usa")).count();
+        long testSetFrance = testSet.stream().filter(testElement -> testElement.getPlaces().get(0).equals("france")).count();
+        long testSetUK = testSet.stream().filter(testElement -> testElement.getPlaces().get(0).equals("uk")).count();
+        long testSetCanada = testSet.stream().filter(testElement -> testElement.getPlaces().get(0).equals("canada")).count();
+        long testSetJapan = testSet.stream().filter(testElement -> testElement.getPlaces().get(0).equals("japan")).count();
+
+        System.out.println("west-germany : " + testSetWestGermany);
+        System.out.println("usa: " + testSetUSA);
+        System.out.println("france : " + testSetFrance);
+        System.out.println("uk : " + testSetUK);
+        System.out.println("canada : " + testSetCanada);
+        System.out.println("japan : " + testSetJapan);
 
         System.out.println("Performing classification task");
         long startTime = System.nanoTime();
@@ -66,19 +86,40 @@ public class Main {
             System.out.println("Article country : " + testElement.getPlaces());
             System.out.println("Predicted article country : " + returnedLabel);
 
-            if (returnedLabel.equals(expectedLabel)) {
-                properlyClassified.getAndIncrement();
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("west-germany")) {
+                properlyClassifiedWestGermany.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("usa")) {
+                properlyClassifiedUSA.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("france")) {
+                properlyClassifiedFrance.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("uk")) {
+                properlyClassifiedUK.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("canada")) {
+                properlyClassifiedCanada.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("japan")) {
+                properlyClassifiedJapan.getAndIncrement();
             }
         });
 
         long stopTime = System.nanoTime();
         long totalTime = stopTime - startTime;
 
-        System.out.println("Properly classified : " + properlyClassified.get() + "/" + testArticles.size());
+        System.out.println("Properly classified (west-germany): " + properlyClassifiedWestGermany.get() + "/" + testSetWestGermany);
+        System.out.println("Properly classified (usa): " + properlyClassifiedUSA.get() + "/" + testSetUSA);
+        System.out.println("Properly classified (france): " + properlyClassifiedFrance.get() + "/" + testSetFrance);
+        System.out.println("Properly classified (uk): " + properlyClassifiedUK.get() + "/" + testSetUK);
+        System.out.println("Properly classified (canada): " + properlyClassifiedCanada.get() + "/" + testSetCanada);
+        System.out.println("Properly classified (japan): " + properlyClassifiedJapan.get() + "/" + testSetJapan);
         System.out.println("Finished classification task for test set. : " + TimeUnit.SECONDS.convert(totalTime, TimeUnit.NANOSECONDS));
     }
 
-    private static void generateBagOfWords(List<Article> testArticles) {
+    // TODO : ujednolicic bag of words i pobieranie artykulow
+    private static void generateBagOfWords(List<Article> testArticles, Set<String> stopwords) {
 
         File bagTxt = new File("bag.txt");
         Set<String> bagSet = new HashSet<>();
@@ -87,11 +128,13 @@ public class Main {
 
             testArticles.forEach(testArticle -> {
                 try {
-                    List<String> bodyWords = TextUtils.getWordsInString(testArticle.getBody());
-                    bodyWords = TextUtils.removeSpecialCharacters(bodyWords);
-                    bodyWords = TextUtils.removeStopwords(bodyWords);
+//                    List<String> bodyWords = TextUtils.getWordsInString(testArticle.getBody());
+//                    bodyWords = TextUtils.removeSpecialCharacters(bodyWords);
+//                    bodyWords = TextUtils.removeStopwords(bodyWords);
 
-                    bodyWords.forEach(word -> {
+                    List<String> articleWords = TextUtils.getAllWords(testArticle, stopwords);
+
+                    articleWords.forEach(word -> {
 
                         if (!bagSet.contains(word)) {
                             bagSet.add(word);
@@ -102,7 +145,7 @@ public class Main {
                             }
                         }
                     });
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             });

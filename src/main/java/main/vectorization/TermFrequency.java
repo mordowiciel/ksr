@@ -1,58 +1,54 @@
 package main.vectorization;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import main.TextUtils;
+import main.dataset.Article;
 
 public class TermFrequency {
 
-    public List<Double> extractVector(String body, List<String> keywords) {
 
-        Map<String, Double> vectorMap = new HashMap<>();
-        List<String> bodyWords = Arrays.asList(body.split(StringUtils.SPACE));
+    public static double getTermFrequency(Article article, String term, Set<String> keywords, Set<String> stopwords) {
 
-        for (String keyword : keywords) {
-
-            Double keywordCount = 0.0;
-            if (!bodyWords.contains(keyword)) {
-                vectorMap.put(keyword, keywordCount);
-                continue;
-            }
-
-            keywordCount = (double) Collections.frequency(bodyWords, keyword);
-            vectorMap.put(keyword, keywordCount);
-
-//            for (String bodyWord : bodyWords) {
-//                if (keyword.equals(bodyWord)) {
-//                    keywordCount += 1.0;
-//                }
-//            }
-
-            vectorMap.put(keyword, keywordCount);
-        }
-
-        List<Double> values = new ArrayList<>(vectorMap.values());
-        return values;
-    }
-
-
-    public double termFrequency(String articleBody, String term) {
-
-        double result = 0;
-
-        List<String> articleWords = Arrays.asList(articleBody.split(" "));
-
+        List<String> articleWords = TextUtils.getAllWords(article, stopwords, keywords);
+        double termCount = 0;
         for (String word : articleWords) {
-            if (term.equalsIgnoreCase(word))
-                result++;
+            if (term.equalsIgnoreCase(word)) {
+                termCount++;
+            }
         }
-
-        return result / articleWords.size();
+        return termCount / articleWords.size();
     }
 
+    public static double getInverseTermFrequency(Set<Article> articles, String term, Set<String> keywords, Set<String> stopwords) {
+        double termCount = 0;
+        for (Article article : articles) {
+
+            Set<String> articleWords = new HashSet<>(TextUtils.getAllWords(article, stopwords, keywords));
+            if (articleWords.contains(term)) {
+                termCount++;
+            }
+        }
+        return Math.log(articles.size() / termCount);
+    }
+
+    public static double getTFIDF(Set<Article> articleList, Article article, String term, Set<String> keywords, Set<String> stopwords) {
+        return getTermFrequency(article, term, keywords, stopwords) * getInverseTermFrequency(articleList, term, keywords, stopwords);
+    }
+
+    //
+//
+    public static Map<String, Double> getTDMap(Set<Article> articleList, Article article, Set<String> keywords, Set<String> stopwords) {
+        Map<String, Double> wordCount = TextUtils.getAllWordsCounts(article, stopwords, keywords);
+        return wordCount.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
+//                   return (double) e.getValue() / TextUtils.getAllWords(article).size();
+                    return getTFIDF(articleList, article, e.getKey(), keywords, stopwords);
+                }));
+    }
 }

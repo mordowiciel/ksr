@@ -63,7 +63,11 @@ public class ReutersDataset extends Dataset<Article> {
             reuters.setTopics(parseList(matcher.group(2)));
             reuters.setPlaces(parseList(matcher.group(3)));
             reuters.setTitle(matcher.group(4).replaceAll("&lt;", "<"));
-            reuters.setBody(matcher.group(5).replaceAll("&lt;", "<"));
+
+            String articleBody = matcher.group(5).replaceAll("&lt;", "<");
+            List<String> bodyWords = Arrays.asList(articleBody.split(" "));
+            reuters.setBodyWords(bodyWords);
+
             reuters_feed.add(reuters);
         }
         return reuters_feed;

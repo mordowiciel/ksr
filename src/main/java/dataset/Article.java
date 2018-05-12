@@ -7,7 +7,7 @@ public class Article implements Serializable {
 
     private String title = "";
     private String date = "";
-    private String body = "";
+    private List<String> bodyWords;
     private List<String> topics;
     private List<String> places;
 
@@ -27,12 +27,12 @@ public class Article implements Serializable {
         this.date = date;
     }
 
-    public String getBody() {
-        return body;
+    public List<String> getBodyWords() {
+        return bodyWords;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setBodyWords(List<String> bodyWords) {
+        this.bodyWords = bodyWords;
     }
 
     public List<String> getTopics() {

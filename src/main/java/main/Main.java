@@ -20,6 +20,7 @@ public class Main {
 
         Set<String> stopwords = new HashSet<>(FileUtils.readLines(new File("stopwords.txt"), "utf-8"));
 
+
         Article before = articleList.get(0);
         System.out.println(before.getBodyWords().size());
         System.out.println(before.getBodyWords());
@@ -28,7 +29,6 @@ public class Main {
         Preprocessing.removeSpecialCharacters(before);
         System.out.println(before.getBodyWords().size());
         System.out.println(before.getBodyWords());
-
 
     }
 }

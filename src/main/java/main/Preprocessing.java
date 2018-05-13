@@ -2,6 +2,8 @@ package main;
 
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import main.dataset.Article;
@@ -21,13 +23,24 @@ public class Preprocessing {
 
         List<String> processedWords = article.getBodyWords()
                 .stream()
+                .map(String::toLowerCase)
+                .map(Preprocessing::removeNumbersFromString)
                 .map(Preprocessing::removeSpecialCharactersFromString)
+                .filter(word -> !word.isEmpty())
                 .collect(Collectors.toList());
 
         article.setBodyWords(processedWords);
     }
 
-    private static String removeSpecialCharactersFromString(String string) {
-        return string.replaceAll("\\W+", "");
+    public static String removeSpecialCharactersFromString(String string) {
+        Pattern pattern = Pattern.compile("\\W+");
+        Matcher matcher = pattern.matcher(string);
+        return matcher.replaceAll("");
+    }
+
+    public static String removeNumbersFromString(String string) {
+        Pattern pattern = Pattern.compile("\\d+");
+        Matcher matcher = pattern.matcher(string);
+        return matcher.replaceAll("");
     }
 }

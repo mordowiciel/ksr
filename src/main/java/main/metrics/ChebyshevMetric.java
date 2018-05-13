@@ -18,7 +18,7 @@ public class ChebyshevMetric implements Metric {
             if (bValue == null) {
                 bValue = 0.0;
             }
-            vectorDistances.add(aValue - bValue);
+            vectorDistances.add(Math.abs(aValue - bValue));
         }
 
         return Collections.max(vectorDistances);

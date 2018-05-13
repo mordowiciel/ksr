@@ -29,23 +29,19 @@ public class KNNClassifier {
     public String classifyObject(Article classificationObject) {
 
         Map<Article, Double> trainingSetDistances = new HashMap<>();
-
-//        TermFrequency termFrequency = new TermFrequency();
-//        Map<String, Double> classificationObjectTF = termFrequency.calculateTermFrequency(classificationObject);
-//        TfIdf tfIdf = new TfIdf(trainingSet);
         Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
         System.out.println(classificationObjectTF);
 
+
         // Calculate distances of training objects
         for (Article trainingObject : trainingSet) {
-
-//            Map<String, Double> trainingObjectTF = termFrequency.calculateTermFrequency(trainingObject);
             Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
             double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
             trainingSetDistances.put(trainingObject, distance);
         }
 
         // Sort distances
+        // reverseOrder(Map.Entry.comparingByValue())
         List<Article> kNeighbours = trainingSetDistances.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)

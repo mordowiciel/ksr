@@ -16,7 +16,7 @@ import main.dataset.Article;
 import main.dataset.Dataset;
 import main.dataset.ReutersDataset;
 import main.knn.KNNClassifier;
-import main.metrics.ManhattanMetric;
+import main.metrics.EuclideanMetric;
 
 public class Main {
 
@@ -33,7 +33,7 @@ public class Main {
         List<Article> trainingArticles = allArticles.subList(0, 8000);
         List<Article> testArticles = allArticles.subList(8000, 12000);
 
-        KNNClassifier knnClassifier = new KNNClassifier(5, trainingArticles, new ManhattanMetric());
+        KNNClassifier knnClassifier = new KNNClassifier(5, trainingArticles, new EuclideanMetric());
         AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
         AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
         AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);

@@ -1,4 +1,4 @@
-package metrics;
+package main.metrics;
 
 import java.util.List;
 

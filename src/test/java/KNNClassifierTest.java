@@ -4,9 +4,9 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import knn.ClassificationSubject;
-import knn.KNNClassifier;
-import metrics.EuclideanMetric;
+import main.knn.ClassificationSubject;
+import main.knn.KNNClassifier;
+import main.metrics.EuclideanMetric;
 
 public class KNNClassifierTest {
 

@@ -1,4 +1,4 @@
-package knn;
+package main.knn;
 
 import java.util.List;
 

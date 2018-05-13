@@ -1,13 +1,16 @@
 package main.metrics;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-public class EuclideanMetric implements Metric {
+public class ChebyshevMetric implements Metric {
 
     @Override
     public double calculateDistance(Map<String, Double> mapA, Map<String, Double> mapB) {
 
-        double sum = 0;
+        List<Double> vectorDistances = new ArrayList();
         for (String keyMapA : mapA.keySet()) {
 
             Double aValue = mapA.get(keyMapA);
@@ -15,10 +18,9 @@ public class EuclideanMetric implements Metric {
             if (bValue == null) {
                 bValue = 0.0;
             }
-
-            sum += Math.pow(aValue - bValue, 2);
+            vectorDistances.add(aValue - bValue);
         }
 
-        return Math.sqrt(sum);
+        return Collections.max(vectorDistances);
     }
 }

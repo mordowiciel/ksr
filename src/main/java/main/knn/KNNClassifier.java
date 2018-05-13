@@ -1,37 +1,52 @@
 package main.knn;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import main.TfIdf;
+import main.dataset.Article;
 import main.metrics.Metric;
 
 public class KNNClassifier {
 
     private final int kNeighboursCount;
-    private final List<ClassificationSubject> trainingSet;
+    private final List<Article> trainingSet;
     private final Metric metric;
+    private final TfIdf tfIdf;
 
-    public KNNClassifier(int kNeighboursCount, List<ClassificationSubject> trainingSet, Metric metric) {
+    public KNNClassifier(int kNeighboursCount, List<Article> trainingSet, Metric metric) {
         this.kNeighboursCount = kNeighboursCount;
         this.trainingSet = trainingSet;
         this.metric = metric;
+        this.tfIdf = new TfIdf(trainingSet);
     }
 
-    public String classifyObject(ClassificationSubject subjectToClassify) {
+    public String classifyObject(Article classificationObject) {
 
-        Map<ClassificationSubject, Double> trainingSetDistances = new HashMap<>();
+        Map<Article, Double> trainingSetDistances = new HashMap<>();
 
-        // Calculate distances
-        for(ClassificationSubject trainingObject : trainingSet) {
-            double distance = metric.calculateDistance(subjectToClassify.getVector(), trainingObject.getVector());
+//        TermFrequency termFrequency = new TermFrequency();
+//        Map<String, Double> classificationObjectTF = termFrequency.calculateTermFrequency(classificationObject);
+//        TfIdf tfIdf = new TfIdf(trainingSet);
+        Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
+        System.out.println(classificationObjectTF);
+
+        // Calculate distances of training objects
+        for (Article trainingObject : trainingSet) {
+
+//            Map<String, Double> trainingObjectTF = termFrequency.calculateTermFrequency(trainingObject);
+            Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
+            double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
             trainingSetDistances.put(trainingObject, distance);
         }
 
         // Sort distances
-        List<ClassificationSubject> kNeighbours = trainingSetDistances.entrySet().stream()
+        List<Article> kNeighbours = trainingSetDistances.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .limit(kNeighboursCount)
@@ -39,17 +54,48 @@ public class KNNClassifier {
 
         // Return the most popular label
         Map<String, Integer> labelCount = new HashMap<>();
-        for(ClassificationSubject neighbour : kNeighbours) {
-            Integer currentLabelCount = labelCount.get(neighbour.getLabel());
+        for (Article neighbour : kNeighbours) {
+            Integer currentLabelCount = labelCount.get(neighbour.getPlaces().get(0));
             if(currentLabelCount == null) {
-                labelCount.put(neighbour.getLabel(), 1);
-            }
-            else {
-                labelCount.put(neighbour.getLabel(), ++currentLabelCount);
+                labelCount.put(neighbour.getPlaces().get(0), 1);
+            } else {
+                labelCount.put(neighbour.getPlaces().get(0), ++currentLabelCount);
             }
         }
 
-        String classifiedLabel = Collections.max(labelCount.entrySet(), Map.Entry.comparingByValue()).getKey();
-        return classifiedLabel;
+        Integer highestCount = Collections.max(labelCount.entrySet(), Map.Entry.comparingByValue()).getValue();
+        List<String> labelsWithHighestCount = getKeysByValue(labelCount, highestCount);
+
+        // DUEL!
+        if (labelsWithHighestCount.size() > 1) {
+
+            Map<String, Double> duelMap = new HashMap<>();
+            for (String label : labelsWithHighestCount) {
+
+                Map<Article, Double> articlesWithLabel = trainingSetDistances.entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().getPlaces().get(0).equals(label))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+                Double closestArticle = Collections.min(articlesWithLabel.entrySet(), Map.Entry.comparingByValue()).getValue();
+                duelMap.put(label, closestArticle);
+            }
+
+            String winnerLabel = Collections.min(duelMap.entrySet(), Map.Entry.comparingByValue()).getKey();
+            return winnerLabel;
+        } else {
+            String classifiedLabel = Collections.max(labelCount.entrySet(), Map.Entry.comparingByValue()).getKey();
+            return classifiedLabel;
+        }
+    }
+
+    public static <T, E> List<T> getKeysByValue(Map<T, E> map, E value) {
+        List<T> keys = new ArrayList<>();
+        for (Map.Entry<T, E> entry : map.entrySet()) {
+            if (Objects.equals(value, entry.getValue())) {
+                keys.add(entry.getKey());
+            }
+        }
+        return keys;
     }
 }

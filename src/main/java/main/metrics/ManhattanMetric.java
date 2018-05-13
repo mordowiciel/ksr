@@ -2,12 +2,11 @@ package main.metrics;
 
 import java.util.Map;
 
-public class EuclideanMetric implements Metric {
-
+public class ManhattanMetric implements Metric {
     @Override
     public double calculateDistance(Map<String, Double> mapA, Map<String, Double> mapB) {
-
         double sum = 0;
+
         for (String keyMapA : mapA.keySet()) {
 
             Double aValue = mapA.get(keyMapA);
@@ -16,9 +15,9 @@ public class EuclideanMetric implements Metric {
                 bValue = 0.0;
             }
 
-            sum += Math.pow(aValue - bValue, 2);
+            sum += Math.abs(aValue - bValue);
         }
 
-        return Math.sqrt(sum);
+        return sum;
     }
 }

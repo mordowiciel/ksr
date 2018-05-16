@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import main.TfIdf;
+import main.NGram;
 import main.dataset.Article;
 import main.metrics.Metric;
 import main.similarity.CosineAmplitude;
@@ -18,13 +18,13 @@ public class KNNClassifier {
     private final int kNeighboursCount;
     private final List<Article> trainingSet;
     private final Metric metric;
-    private final TfIdf tfIdf;
+    private final NGram nGram;
 
     public KNNClassifier(int kNeighboursCount, List<Article> trainingSet, Metric metric) {
         this.kNeighboursCount = kNeighboursCount;
         this.trainingSet = trainingSet;
         this.metric = metric;
-        this.tfIdf = new TfIdf(trainingSet);
+        this.nGram = new NGram();
     }
 
     public String classifyObject(Article classificationObject) {
@@ -32,15 +32,16 @@ public class KNNClassifier {
         CosineAmplitude cosineAmplitude = new CosineAmplitude();
 
         Map<Article, Double> trainingSetDistances = new HashMap<>();
-        Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
-        System.out.println(classificationObjectTF);
-
+//        Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
+        Map<String, Double> classificationObjectNGrams = nGram.calculateNGram(classificationObject);
+        ;
 
         // Calculate distances of training objects
         for (Article trainingObject : trainingSet) {
-            Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
+//            Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
 //            double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
-            double distance = cosineAmplitude.calculateSimilarity(classificationObjectTF, trainingObjectTF);
+            Map<String, Double> trainingObjectNGrams = nGram.calculateNGram(trainingObject);
+            double distance = cosineAmplitude.calculateSimilarity(classificationObjectNGrams, trainingObjectNGrams);
             trainingSetDistances.put(trainingObject, distance);
         }
 

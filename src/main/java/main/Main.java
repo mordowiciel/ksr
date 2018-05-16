@@ -34,7 +34,7 @@ public class Main {
         List<Article> trainingArticles = allArticles.subList(0, 8000);
         List<Article> testArticles = allArticles.subList(8000, 12000);
 
-        KNNClassifier knnClassifier = new KNNClassifier(7, trainingArticles, new EuclideanMetric());
+        KNNClassifier knnClassifier = new KNNClassifier(5, trainingArticles, new EuclideanMetric());
         AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
         AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
         AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);
@@ -63,9 +63,9 @@ public class Main {
             String expectedLabel = testElement.getPlaces().get(0);
             String returnedLabel = knnClassifier.classifyObject(testElement);
 
-            System.out.println("Article title : " + testElement.getTitle());
-            System.out.println("Article country : " + testElement.getPlaces());
-            System.out.println("Predicted article country : " + returnedLabel);
+//            System.out.println("Article title : " + testElement.getTitle());
+//            System.out.println("Article country : " + testElement.getPlaces());
+//            System.out.println("Predicted article country : " + returnedLabel);
 
             if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("west-germany")) {
                 properlyClassifiedWestGermany.getAndIncrement();

@@ -2,6 +2,7 @@ package main;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import main.dataset.Article;
 
@@ -26,6 +27,7 @@ public class NGram {
             });
         }
 
-        return nGramCounts;
+        return nGramCounts.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() / (double) nGramCounts.size()));
     }
 }

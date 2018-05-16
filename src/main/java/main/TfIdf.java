@@ -37,6 +37,7 @@ public class TfIdf {
             idf = Math.log(idf);
 
             double tfidf = tf * idf;
+
             inverseDocumentFrequency.put(term, tfidf);
         }
 

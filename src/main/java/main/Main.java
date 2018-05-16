@@ -30,10 +30,11 @@ public class Main {
         performDataPreprocessing(allArticles);
         System.out.println("Successfully performed articles preprocessing");
 
+
         List<Article> trainingArticles = allArticles.subList(0, 8000);
         List<Article> testArticles = allArticles.subList(8000, 12000);
 
-        KNNClassifier knnClassifier = new KNNClassifier(5, trainingArticles, new EuclideanMetric());
+        KNNClassifier knnClassifier = new KNNClassifier(7, trainingArticles, new EuclideanMetric());
         AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
         AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
         AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);

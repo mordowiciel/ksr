@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import main.TfIdf;
 import main.dataset.Article;
 import main.metrics.Metric;
+import main.similarity.CosineAmplitude;
 
 public class KNNClassifier {
 
@@ -28,6 +29,8 @@ public class KNNClassifier {
 
     public String classifyObject(Article classificationObject) {
 
+        CosineAmplitude cosineAmplitude = new CosineAmplitude();
+
         Map<Article, Double> trainingSetDistances = new HashMap<>();
         Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
         System.out.println(classificationObjectTF);
@@ -36,14 +39,21 @@ public class KNNClassifier {
         // Calculate distances of training objects
         for (Article trainingObject : trainingSet) {
             Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
-            double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
+//            double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
+            double distance = cosineAmplitude.calculateSimilarity(classificationObjectTF, trainingObjectTF);
             trainingSetDistances.put(trainingObject, distance);
         }
 
         // Sort distances
-        // reverseOrder(Map.Entry.comparingByValue())
+
+//        List<Double> distances = trainingSetDistances.entrySet().stream()
+//                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+//                .map(Map.Entry::getValue)
+//                .limit(kNeighboursCount)
+//                .collect(Collectors.toList());
+
         List<Article> kNeighbours = trainingSetDistances.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
                 .map(Map.Entry::getKey)
                 .limit(kNeighboursCount)
                 .collect(Collectors.toList());
@@ -52,7 +62,7 @@ public class KNNClassifier {
         Map<String, Integer> labelCount = new HashMap<>();
         for (Article neighbour : kNeighbours) {
             Integer currentLabelCount = labelCount.get(neighbour.getPlaces().get(0));
-            if(currentLabelCount == null) {
+            if (currentLabelCount == null) {
                 labelCount.put(neighbour.getPlaces().get(0), 1);
             } else {
                 labelCount.put(neighbour.getPlaces().get(0), ++currentLabelCount);

@@ -9,7 +9,7 @@ public class CosineAmplitude implements Similarity {
 
     @Override
     public double calculateSimilarity(Map<String, Double> mapA, Map<String, Double> mapB) {
-        double sumUpper = 0L;
+        double sumUpper = 0.0;
         Set<String> m1Keys = mapA.keySet();
         for (String m1Key : m1Keys) {
             Double wordCount1 = mapA.get(m1Key);
@@ -20,8 +20,8 @@ public class CosineAmplitude implements Similarity {
             sumUpper += wordCount1 * wordCount2;
         }
 
-        double firstLower = 0L;
-        double secondLower = 0L;
+        double firstLower = 0.0;
+        double secondLower = 0.0;
         List<Double> m1Values = new ArrayList<>(mapA.values());
         List<Double> m2Values = new ArrayList<>(mapB.values());
 
@@ -33,8 +33,13 @@ public class CosineAmplitude implements Similarity {
             secondLower += Math.pow(m2Value, 2);
         }
 
-        double sqrtLower = Math.sqrt(firstLower * secondLower);
+        if (firstLower == 0.0 || secondLower == 0.0) {
+            return 0.0;
+        }
 
-        return sumUpper / sqrtLower;
+        double sqrtLower = Math.sqrt(firstLower * secondLower);
+        double result = sumUpper / sqrtLower;
+
+        return result;
     }
 }

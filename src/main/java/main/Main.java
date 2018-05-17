@@ -63,9 +63,9 @@ public class Main {
             String expectedLabel = testElement.getPlaces().get(0);
             String returnedLabel = knnClassifier.classifyObject(testElement);
 
-//            System.out.println("Article title : " + testElement.getTitle());
-//            System.out.println("Article country : " + testElement.getPlaces());
-//            System.out.println("Predicted article country : " + returnedLabel);
+            System.out.println("Article title : " + testElement.getTitle());
+            System.out.println("Article country : " + testElement.getPlaces());
+            System.out.println("Predicted article country : " + returnedLabel);
 
             if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("west-germany")) {
                 properlyClassifiedWestGermany.getAndIncrement();

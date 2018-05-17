@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 import main.NGram;
 import main.dataset.Article;
 import main.metrics.Metric;
-import main.similarity.CosineAmplitude;
+import main.similarity.ModuleExponent;
+import main.similarity.Similarity;
 
 public class KNNClassifier {
 
@@ -29,19 +30,18 @@ public class KNNClassifier {
 
     public String classifyObject(Article classificationObject) {
 
-        CosineAmplitude cosineAmplitude = new CosineAmplitude();
+        Similarity similarity = new ModuleExponent();
 
         Map<Article, Double> trainingSetDistances = new HashMap<>();
 //        Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
         Map<String, Double> classificationObjectNGrams = nGram.calculateNGram(classificationObject);
-        ;
 
         // Calculate distances of training objects
         for (Article trainingObject : trainingSet) {
 //            Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
 //            double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
             Map<String, Double> trainingObjectNGrams = nGram.calculateNGram(trainingObject);
-            double distance = cosineAmplitude.calculateSimilarity(classificationObjectNGrams, trainingObjectNGrams);
+            double distance = similarity.calculateSimilarity(classificationObjectNGrams, trainingObjectNGrams);
             trainingSetDistances.put(trainingObject, distance);
         }
 

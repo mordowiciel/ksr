@@ -33,28 +33,20 @@ public class KNNClassifier {
         Similarity similarity = new ModuleExponent();
 
         Map<Article, Double> trainingSetDistances = new HashMap<>();
-//        Map<String, Double> classificationObjectTF = tfIdf.calculateInverseTermDocumentFrequency(classificationObject);
         Map<String, Double> classificationObjectNGrams = nGram.calculateNGram(classificationObject);
 
         // Calculate distances of training objects
         for (Article trainingObject : trainingSet) {
-//            Map<String, Double> trainingObjectTF = tfIdf.calculateInverseTermDocumentFrequency(trainingObject);
-//            double distance = metric.calculateDistance(classificationObjectTF, trainingObjectTF);
             Map<String, Double> trainingObjectNGrams = nGram.calculateNGram(trainingObject);
-            double distance = similarity.calculateSimilarity(classificationObjectNGrams, trainingObjectNGrams);
+//            double distance = similarity.calculateSimilarity(classificationObjectNGrams, trainingObjectNGrams);
+            double distance = metric.calculateDistance(classificationObjectNGrams, trainingObjectNGrams);
             trainingSetDistances.put(trainingObject, distance);
         }
 
         // Sort distances
-
-//        List<Double> distances = trainingSetDistances.entrySet().stream()
-//                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-//                .map(Map.Entry::getValue)
-//                .limit(kNeighboursCount)
-//                .collect(Collectors.toList());
-
         List<Article> kNeighbours = trainingSetDistances.entrySet().stream()
-                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+//                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .limit(kNeighboursCount)
                 .collect(Collectors.toList());
@@ -62,12 +54,23 @@ public class KNNClassifier {
         // Return the most popular label
         Map<String, Integer> labelCount = new HashMap<>();
         for (Article neighbour : kNeighbours) {
-            Integer currentLabelCount = labelCount.get(neighbour.getPlaces().get(0));
-            if (currentLabelCount == null) {
-                labelCount.put(neighbour.getPlaces().get(0), 1);
-            } else {
-                labelCount.put(neighbour.getPlaces().get(0), ++currentLabelCount);
+//            Integer currentLabelCount = labelCount.get(neighbour.getPlaces().get(0));
+//            if (currentLabelCount == null) {
+//                labelCount.put(neighbour.getPlaces().get(0), 1);
+//            } else {
+//                labelCount.put(neighbour.getPlaces().get(0), ++currentLabelCount);
+//            }
+
+            List<String> neighbourLabels = neighbour.getTopics();
+            for (String label : neighbourLabels) {
+                Integer currentLabelCount = labelCount.get(label);
+                if (currentLabelCount == null) {
+                    labelCount.put(label, 1);
+                } else {
+                    labelCount.put(label, ++currentLabelCount);
+                }
             }
+
         }
 
         Integer highestCount = Collections.max(labelCount.entrySet(), Map.Entry.comparingByValue()).getValue();
@@ -81,7 +84,8 @@ public class KNNClassifier {
 
                 Map<Article, Double> articlesWithLabel = trainingSetDistances.entrySet()
                         .stream()
-                        .filter(entry -> entry.getKey().getPlaces().get(0).equals(label))
+//                        .filter(entry -> entry.getKey().getPlaces().get(0).equals(label))
+                        .filter(entry -> entry.getKey().getTopics().contains(label))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
                 Double closestArticle = Collections.min(articlesWithLabel.entrySet(), Map.Entry.comparingByValue()).getValue();

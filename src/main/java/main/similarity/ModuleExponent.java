@@ -1,12 +1,17 @@
 package main.similarity;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class ModuleExponent implements Similarity {
+import main.Distance;
+
+public class ModuleExponent implements Distance {
 
     @Override
-    public double calculateSimilarity(Map<String, Double> mapA, Map<String, Double> mapB) {
+    public double calculateDistance(Map<String, Double> mapA, Map<String, Double> mapB) {
         double sum = 0.0;
         Set<String> m1Keys = mapA.keySet();
         for (String m1Key : m1Keys) {
@@ -20,5 +25,13 @@ public class ModuleExponent implements Similarity {
 
         return Math.exp(-sum);
 
+    }
+
+    @Override
+    public List<Double> getClosestDistances(List<Double> distances, int count) {
+        return distances.stream()
+                .sorted(Comparator.reverseOrder())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }

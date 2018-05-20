@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 
 import main.dataset.Article;
 
-public class TermFrequency {
+public class TermFrequency implements FeatureExtractor {
 
-    public Map<String, Double> calculateTermFrequency(Article article) {
+    public Map<String, Double> extractFeatures(Article article) {
 
         Map<String, Double> termFrequency = new LinkedHashMap<>();
 

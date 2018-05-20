@@ -1,8 +1,13 @@
 package main.metrics;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class ManhattanMetric implements Metric {
+import main.Distance;
+
+public class ManhattanMetric implements Distance {
+
     @Override
     public double calculateDistance(Map<String, Double> mapA, Map<String, Double> mapB) {
         double sum = 0;
@@ -19,5 +24,13 @@ public class ManhattanMetric implements Metric {
         }
 
         return sum;
+    }
+
+    @Override
+    public List<Double> getClosestDistances(List<Double> distances, int count) {
+        return distances.stream()
+                .sorted(Double::compareTo)
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }

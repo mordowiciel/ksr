@@ -21,7 +21,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-
         List<Article> allArticles = loadDataWithOnlyOneTopic();
         System.out.println("Successfully loaded articles to memory : " + allArticles.size());
 
@@ -33,7 +32,9 @@ public class Main {
         List<Article> trainingArticles = allArticles.subList(0, trainingSetSize);
         List<Article> testArticles = allArticles.subList(trainingSetSize, allArticles.size());
 
-        KNNClassifier knnClassifier = new KNNClassifier(3, trainingArticles, new EuclideanMetric());
+        KNNClassifier knnClassifier = new KNNClassifier(3, trainingArticles,
+                new EuclideanMetric(),
+                new NGram());
 //        AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
 //        AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
 //        AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);

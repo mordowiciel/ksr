@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 
 import main.dataset.Article;
 
-public class NGram {
+public class NGram implements FeatureExtractor {
 
-    public Map<String, Double> calculateNGram(Article article) {
+    public Map<String, Double> extractFeatures(Article article) {
 
         Map<String, Double> nGramCounts = new LinkedHashMap<>();
 

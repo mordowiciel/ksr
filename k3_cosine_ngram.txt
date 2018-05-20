@@ -1,0 +1,6 @@
+Properly classified (west-germany): 51/93: 0.5483870967741935
+Properly classified (usa): 3053/3192: 0.956453634085213
+Properly classified (france): 38/70: 0.5428571428571428
+Properly classified (uk): 150/223: 0.672645739910314
+Properly classified (canada): 79/250: 0.316
+Properly classified (japan): 97/172: 0.563953488372093

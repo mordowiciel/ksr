@@ -8,60 +8,52 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import main.NGram;
+import main.Distance;
+import main.FeatureExtractor;
 import main.dataset.Article;
-import main.metrics.Metric;
-import main.similarity.ModuleExponent;
-import main.similarity.Similarity;
 
 public class KNNClassifier {
 
     private final int kNeighboursCount;
     private final List<Article> trainingSet;
-    private final Metric metric;
-    private final NGram nGram;
+    private final Distance distanceProvider;
+    private final FeatureExtractor featureExtractor;
 
-    public KNNClassifier(int kNeighboursCount, List<Article> trainingSet, Metric metric) {
+    public KNNClassifier(int kNeighboursCount, List<Article> trainingSet, Distance distanceProvider,
+                         FeatureExtractor featureExtractor) {
         this.kNeighboursCount = kNeighboursCount;
         this.trainingSet = trainingSet;
-        this.metric = metric;
-        this.nGram = new NGram();
+        this.distanceProvider = distanceProvider;
+        this.featureExtractor = featureExtractor;
     }
 
     public String classifyObject(Article classificationObject) {
 
-        Similarity similarity = new ModuleExponent();
-
         Map<Article, Double> trainingSetDistances = new HashMap<>();
-        Map<String, Double> classificationObjectNGrams = nGram.calculateNGram(classificationObject);
+        Map<String, Double> classificationObjectNGrams = featureExtractor.extractFeatures(classificationObject);
 
         // Calculate distances of training objects
         for (Article trainingObject : trainingSet) {
-            Map<String, Double> trainingObjectNGrams = nGram.calculateNGram(trainingObject);
-//            double distance = similarity.calculateSimilarity(classificationObjectNGrams, trainingObjectNGrams);
-            double distance = metric.calculateDistance(classificationObjectNGrams, trainingObjectNGrams);
+            Map<String, Double> trainingObjectNGrams = featureExtractor.extractFeatures(trainingObject);
+            double distance = distanceProvider.calculateDistance(classificationObjectNGrams, trainingObjectNGrams);
             trainingSetDistances.put(trainingObject, distance);
         }
 
-        // Sort distances
-        List<Article> kNeighbours = trainingSetDistances.entrySet().stream()
-//                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-                .sorted(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .limit(kNeighboursCount)
-                .collect(Collectors.toList());
+        List<Double> distances = distanceProvider.getClosestDistances(new ArrayList<>(trainingSetDistances.values()), kNeighboursCount);
+        List<Article> kNeighbours = new ArrayList<>();
+
+        for (Double distance : distances) {
+            Article article = getKeysByValue(trainingSetDistances, distance).get(0);
+            kNeighbours.add(article);
+        }
+
 
         // Return the most popular label
         Map<String, Integer> labelCount = new HashMap<>();
         for (Article neighbour : kNeighbours) {
-//            Integer currentLabelCount = labelCount.get(neighbour.getPlaces().get(0));
-//            if (currentLabelCount == null) {
-//                labelCount.put(neighbour.getPlaces().get(0), 1);
-//            } else {
-//                labelCount.put(neighbour.getPlaces().get(0), ++currentLabelCount);
-//            }
 
             List<String> neighbourLabels = neighbour.getTopics();
+
             for (String label : neighbourLabels) {
                 Integer currentLabelCount = labelCount.get(label);
                 if (currentLabelCount == null) {
@@ -84,7 +76,6 @@ public class KNNClassifier {
 
                 Map<Article, Double> articlesWithLabel = trainingSetDistances.entrySet()
                         .stream()
-//                        .filter(entry -> entry.getKey().getPlaces().get(0).equals(label))
                         .filter(entry -> entry.getKey().getTopics().contains(label))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 

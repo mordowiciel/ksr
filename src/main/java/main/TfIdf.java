@@ -20,7 +20,7 @@ public class TfIdf {
 
     public Map<String, Double> calculateInverseTermDocumentFrequency(Article article) {
 
-        Map<String, Double> articleTermFrequency = termFrequency.calculateTermFrequency(article);
+        Map<String, Double> articleTermFrequency = termFrequency.extractFeatures(article);
         Map<String, Double> inverseDocumentFrequency = new HashMap<>();
 
         for (Map.Entry<String, Double> termFrequency : articleTermFrequency.entrySet()) {
@@ -67,7 +67,7 @@ public class TfIdf {
     private List<Map<String, Double>> calculateTermFrequencyForAllDocuments(List<Article> articleList) {
         List<Map<String, Double>> termFrequencyForAllDocuments = new ArrayList<>();
         articleList.forEach(article -> {
-            Map<String, Double> articleTermFrequency = termFrequency.calculateTermFrequency(article);
+            Map<String, Double> articleTermFrequency = termFrequency.extractFeatures(article);
             termFrequencyForAllDocuments.add(articleTermFrequency);
         });
         return termFrequencyForAllDocuments;

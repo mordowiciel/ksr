@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class ChebyshevMetric implements Metric {
+import main.Distance;
+
+public class ChebyshevMetric implements Distance {
 
     @Override
     public double calculateDistance(Map<String, Double> mapA, Map<String, Double> mapB) {
@@ -22,5 +25,13 @@ public class ChebyshevMetric implements Metric {
         }
 
         return Collections.max(vectorDistances);
+    }
+
+    @Override
+    public List<Double> getClosestDistances(List<Double> distances, int count) {
+        return distances.stream()
+                .sorted(Double::compareTo)
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }

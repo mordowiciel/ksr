@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -105,7 +106,11 @@ public class Main {
     private static ClassificationSubject mapArticleToClassificationSubject(Article article) {
         ClassificationSubject classificationSubject = new ClassificationSubject();
         classificationSubject.setLabels(article.getPlaces());
-        classificationSubject.setRawData(article.getBodyWords());
+
+        FeatureExtractor featureExtractor = new NGram();
+        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords());
+        classificationSubject.setFeatures(features);
+
         return classificationSubject;
     }
 

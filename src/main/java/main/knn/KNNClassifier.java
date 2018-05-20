@@ -30,12 +30,13 @@ public class KNNClassifier {
     public String classifyObject(ClassificationSubject classificationObject) {
 
         Map<ClassificationSubject, Double> trainingSetDistances = new HashMap<>();
-        Map<String, Double> classificationObjectNGrams = featureExtractor.extractFeatures(classificationObject.getRawData());
+//        Map<String, Double> classificationObjectNGrams = featureExtractor.extractFeatures(classificationObject.getRawData());
+        Map<String, Double> classificationObjectFeatures = classificationObject.getFeatures();
 
         // Calculate distances of training objects
         for (ClassificationSubject trainingObject : trainingSet) {
-            Map<String, Double> trainingObjectNGrams = featureExtractor.extractFeatures(trainingObject.getRawData());
-            double distance = distanceProvider.calculateDistance(classificationObjectNGrams, trainingObjectNGrams);
+            Map<String, Double> trainingObjectFeatures = trainingObject.getFeatures();
+            double distance = distanceProvider.calculateDistance(classificationObjectFeatures, trainingObjectFeatures);
             trainingSetDistances.put(trainingObject, distance);
         }
 

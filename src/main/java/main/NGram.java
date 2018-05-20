@@ -1,16 +1,17 @@
 package main;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class NGram implements FeatureExtractor {
 
-    public Map<String, Double> extractFeatures(ClassificationSubject classificationSubject) {
+    public Map<String, Double> extractFeatures(List<String> rawData) {
 
         Map<String, Double> nGramCounts = new LinkedHashMap<>();
 
-        for (String word : classificationSubject.getRawData()) {
+        for (String word : rawData) {
 
             NGramIterator nGramIterator = new NGramIterator(3, word);
             nGramIterator.forEachRemaining(nGram -> {

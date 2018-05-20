@@ -5,15 +5,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import main.dataset.Article;
-
 public class TermFrequency implements FeatureExtractor {
 
-    public Map<String, Double> extractFeatures(Article article) {
+    public Map<String, Double> extractFeatures(ClassificationSubject classificationSubject) {
 
         Map<String, Double> termFrequency = new LinkedHashMap<>();
 
-        for (String word : article.getBodyWords()) {
+        for (String word : classificationSubject.getRawData()) {
             Double count = termFrequency.get(word);
             if (count == null) {
                 termFrequency.put(word, 0.0);
@@ -25,7 +23,7 @@ public class TermFrequency implements FeatureExtractor {
         return termFrequency.entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> entry.getValue() / article.getBodyWords().size()))
+                        entry -> entry.getValue() / classificationSubject.getRawData().size()))
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))

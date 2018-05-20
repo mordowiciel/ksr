@@ -7,20 +7,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import main.dataset.Article;
-
 public class TfIdf {
 
     private TermFrequency termFrequency = new TermFrequency();
     private Map<String, Double> termsCount;
 
-    public TfIdf(List<Article> docs) {
+    public TfIdf(List<ClassificationSubject> docs) {
         this.termsCount = countTermExistenseInDocument(docs);
     }
 
-    public Map<String, Double> calculateInverseTermDocumentFrequency(Article article) {
+    public Map<String, Double> calculateInverseTermDocumentFrequency(ClassificationSubject classificationSubject) {
 
-        Map<String, Double> articleTermFrequency = termFrequency.extractFeatures(article);
+        Map<String, Double> articleTermFrequency = termFrequency.extractFeatures(classificationSubject);
         Map<String, Double> inverseDocumentFrequency = new HashMap<>();
 
         for (Map.Entry<String, Double> termFrequency : articleTermFrequency.entrySet()) {
@@ -44,7 +42,7 @@ public class TfIdf {
         return inverseDocumentFrequency;
     }
 
-    private Map<String, Double> countTermExistenseInDocument(List<Article> articleList) {
+    private Map<String, Double> countTermExistenseInDocument(List<ClassificationSubject> articleList) {
 
         Set<String> termsSet = getTermSet(articleList);
         List<Map<String, Double>> termFrequencyOfAllDocuments = calculateTermFrequencyForAllDocuments(articleList);
@@ -64,7 +62,7 @@ public class TfIdf {
 
     }
 
-    private List<Map<String, Double>> calculateTermFrequencyForAllDocuments(List<Article> articleList) {
+    private List<Map<String, Double>> calculateTermFrequencyForAllDocuments(List<ClassificationSubject> articleList) {
         List<Map<String, Double>> termFrequencyForAllDocuments = new ArrayList<>();
         articleList.forEach(article -> {
             Map<String, Double> articleTermFrequency = termFrequency.extractFeatures(article);
@@ -73,9 +71,9 @@ public class TfIdf {
         return termFrequencyForAllDocuments;
     }
 
-    private Set<String> getTermSet(List<Article> articleList) {
+    private Set<String> getTermSet(List<ClassificationSubject> articleList) {
         Set<String> termSet = new HashSet<>();
-        articleList.forEach(article -> termSet.addAll(article.getBodyWords()));
+        articleList.forEach(article -> termSet.addAll(article.getRawData()));
         return termSet;
     }
 }

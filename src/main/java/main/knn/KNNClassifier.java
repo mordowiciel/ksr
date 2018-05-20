@@ -8,18 +8,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import main.ClassificationSubject;
 import main.Distance;
 import main.FeatureExtractor;
-import main.dataset.Article;
 
 public class KNNClassifier {
 
     private final int kNeighboursCount;
-    private final List<Article> trainingSet;
+    private final List<ClassificationSubject> trainingSet;
     private final Distance distanceProvider;
     private final FeatureExtractor featureExtractor;
 
-    public KNNClassifier(int kNeighboursCount, List<Article> trainingSet, Distance distanceProvider,
+    public KNNClassifier(int kNeighboursCount, List<ClassificationSubject> trainingSet, Distance distanceProvider,
                          FeatureExtractor featureExtractor) {
         this.kNeighboursCount = kNeighboursCount;
         this.trainingSet = trainingSet;
@@ -27,32 +27,32 @@ public class KNNClassifier {
         this.featureExtractor = featureExtractor;
     }
 
-    public String classifyObject(Article classificationObject) {
+    public String classifyObject(ClassificationSubject classificationObject) {
 
-        Map<Article, Double> trainingSetDistances = new HashMap<>();
+        Map<ClassificationSubject, Double> trainingSetDistances = new HashMap<>();
         Map<String, Double> classificationObjectNGrams = featureExtractor.extractFeatures(classificationObject);
 
         // Calculate distances of training objects
-        for (Article trainingObject : trainingSet) {
+        for (ClassificationSubject trainingObject : trainingSet) {
             Map<String, Double> trainingObjectNGrams = featureExtractor.extractFeatures(trainingObject);
             double distance = distanceProvider.calculateDistance(classificationObjectNGrams, trainingObjectNGrams);
             trainingSetDistances.put(trainingObject, distance);
         }
 
         List<Double> distances = distanceProvider.getClosestDistances(new ArrayList<>(trainingSetDistances.values()), kNeighboursCount);
-        List<Article> kNeighbours = new ArrayList<>();
+        List<ClassificationSubject> kNeighbours = new ArrayList<>();
 
         for (Double distance : distances) {
-            Article article = getKeysByValue(trainingSetDistances, distance).get(0);
+            ClassificationSubject article = getKeysByValue(trainingSetDistances, distance).get(0);
             kNeighbours.add(article);
         }
 
 
         // Return the most popular label
         Map<String, Integer> labelCount = new HashMap<>();
-        for (Article neighbour : kNeighbours) {
+        for (ClassificationSubject neighbour : kNeighbours) {
 
-            List<String> neighbourLabels = neighbour.getTopics();
+            List<String> neighbourLabels = neighbour.getLabels();
 
             for (String label : neighbourLabels) {
                 Integer currentLabelCount = labelCount.get(label);
@@ -74,9 +74,9 @@ public class KNNClassifier {
             Map<String, Double> duelMap = new HashMap<>();
             for (String label : labelsWithHighestCount) {
 
-                Map<Article, Double> articlesWithLabel = trainingSetDistances.entrySet()
+                Map<ClassificationSubject, Double> articlesWithLabel = trainingSetDistances.entrySet()
                         .stream()
-                        .filter(entry -> entry.getKey().getTopics().contains(label))
+                        .filter(entry -> entry.getKey().getLabels().contains(label))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
                 Double closestArticle = Collections.min(articlesWithLabel.entrySet(), Map.Entry.comparingByValue()).getValue();

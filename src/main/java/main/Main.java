@@ -21,109 +21,43 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        List<Article> allArticles = loadDataWithOnlyOneTopic();
+        List<Article> allArticles = loadDataWithOnlyOneCountry();
         System.out.println("Successfully loaded articles to memory : " + allArticles.size());
 
         performDataPreprocessing(allArticles);
         System.out.println("Successfully performed articles preprocessing");
 
+        List<ClassificationSubject> classificationSubjects = allArticles.stream()
+                .map(Main::mapArticleToClassificationSubject)
+                .collect(Collectors.toList());
+
         int trainingSetSize = (int) Math.floor(0.60 * allArticles.size());
 
-        List<Article> trainingArticles = allArticles.subList(0, trainingSetSize);
-        List<Article> testArticles = allArticles.subList(trainingSetSize, allArticles.size());
+        List<ClassificationSubject> trainingArticles = classificationSubjects.subList(0, trainingSetSize);
+        List<ClassificationSubject> testArticles = classificationSubjects.subList(trainingSetSize, allArticles.size());
 
-        KNNClassifier knnClassifier = new KNNClassifier(3, trainingArticles,
-                new EuclideanMetric(),
-                new NGram());
-//        AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
-//        AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
-//        AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);
-//        AtomicInteger properlyClassifiedUK = new AtomicInteger(0);
-//        AtomicInteger properlyClassifiedCanada = new AtomicInteger(0);
-//        AtomicInteger properlyClassifiedJapan = new AtomicInteger(0);
+        countryClassification(trainingArticles, testArticles);
+
+//        AtomicInteger properlyClassified = new AtomicInteger(0);
 //
-//        long testArticlesWestGermany = testArticles.stream().filter(testElement -> testElement.getPlaces().get(0).equals("west-germany")).count();
-//        long testArticlesUSA = testArticles.stream().filter(testElement -> testElement.getPlaces().get(0).equals("usa")).count();
-//        long testArticlesFrance = testArticles.stream().filter(testElement -> testElement.getPlaces().get(0).equals("france")).count();
-//        long testArticlesUK = testArticles.stream().filter(testElement -> testElement.getPlaces().get(0).equals("uk")).count();
-//        long testArticlesCanada = testArticles.stream().filter(testElement -> testElement.getPlaces().get(0).equals("canada")).count();
-//        long testArticlesJapan = testArticles.stream().filter(testElement -> testElement.getPlaces().get(0).equals("japan")).count();
+//        System.out.println("Performing classification task");
+//        long startTime = System.nanoTime();
+//        testArticles.forEach(testElement -> {
 //
-//        System.out.println("west-germany : " + testArticlesWestGermany);
-//        System.out.println("usa: " + testArticlesUSA);
-//        System.out.println("france : " + testArticlesFrance);
-//        System.out.println("uk : " + testArticlesUK);
-//        System.out.println("canada : " + testArticlesCanada);
-//        System.out.println("japan : " + testArticlesJapan);
-
-        AtomicInteger properlyClassified = new AtomicInteger(0);
-
-        System.out.println("Performing classification task");
-        long startTime = System.nanoTime();
-        testArticles.forEach(testElement -> {
-
-            List<String> expectedLabel = testElement.getTopics();
-            String returnedLabel = knnClassifier.classifyObject(testElement);
-
-            System.out.println("Article title : " + testElement.getTitle());
-            System.out.println("Article topics : " + testElement.getTopics());
-            System.out.println("Predicted article topic : " + returnedLabel);
-
-            if (expectedLabel.contains(returnedLabel)) {
-                properlyClassified.getAndIncrement();
-            }
-
-//            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("west-germany")) {
-//                properlyClassifiedWestGermany.getAndIncrement();
+//            List<String> expectedLabel = testElement.getLabels();
+//            String returnedLabel = knnClassifier.classifyObject(testElement);
+//
+////            System.out.println("Article title : " + testElement.getTitle());
+//            System.out.println("Article topics : " + testElement.getLabels());
+//            System.out.println("Predicted article topic : " + returnedLabel);
+//
+//            if (expectedLabel.contains(returnedLabel)) {
+//                properlyClassified.getAndIncrement();
 //            }
-//            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("usa")) {
-//                properlyClassifiedUSA.getAndIncrement();
-//            }
-//            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("france")) {
-//                properlyClassifiedFrance.getAndIncrement();
-//            }
-//            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("uk")) {
-//                properlyClassifiedUK.getAndIncrement();
-//            }
-//            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("canada")) {
-//                properlyClassifiedCanada.getAndIncrement();
-//            }
-//            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("japan")) {
-//                properlyClassifiedJapan.getAndIncrement();
-//            }
-        });
-
-        long stopTime = System.nanoTime();
-        long totalTime = stopTime - startTime;
-
-//        double percentWestGermany = (double) properlyClassifiedWestGermany.get() / (double) testArticlesWestGermany;
-//        double percentUSA = (double) properlyClassifiedUSA.get() / (double) testArticlesUSA;
-//        double percentFrance = (double) properlyClassifiedFrance.get() / (double) testArticlesFrance;
-//        double percentUK = (double) properlyClassifiedUK.get() / (double) testArticlesUK;
-//        double percentCanada = (double) properlyClassifiedCanada.get() / (double) testArticlesCanada;
-//        double percentJapan = (double) properlyClassifiedJapan.get() / (double) testArticlesJapan;
+//        });
 //
-//        System.out.println("Properly classified (west-germany): " +
-//                properlyClassifiedWestGermany.get() + "/" + testArticlesWestGermany + ": " + percentWestGermany);
-//
-//        System.out.println("Properly classified (usa): " +
-//                properlyClassifiedUSA.get() + "/" + testArticlesUSA + ": " + percentUSA);
-//
-//        System.out.println("Properly classified (france): "
-//                + properlyClassifiedFrance.get() + "/" + testArticlesFrance + ": " + percentFrance);
-//
-//        System.out.println("Properly classified (uk): "
-//                + properlyClassifiedUK.get() + "/" + testArticlesUK + ": " + percentUK);
-//
-//        System.out.println("Properly classified (canada): " +
-//                properlyClassifiedCanada.get() + "/" + testArticlesCanada + ": " + percentCanada);
-//
-//        System.out.println("Properly classified (japan): " +
-//                properlyClassifiedJapan.get() + "/" + testArticlesJapan + ": " + percentJapan);
-//
-//        System.out.println("Finished classification task for test set. : " + TimeUnit.SECONDS.convert(totalTime, TimeUnit.NANOSECONDS));
-
-        System.out.println("Properly clasified : " + properlyClassified + "/" + 3551);
+//        long stopTime = System.nanoTime();
+//        long totalTime = stopTime - startTime;
     }
 
     private static void performDataPreprocessing(List<Article> articleList) throws IOException {
@@ -165,5 +99,108 @@ public class Main {
                 .collect(Collectors.toList());
 
         return allArticles;
+    }
+
+    // TODO : wywal ustalanie, jakie labelki trafiaja do ClassificationSubject?
+    private static ClassificationSubject mapArticleToClassificationSubject(Article article) {
+        ClassificationSubject classificationSubject = new ClassificationSubject();
+        classificationSubject.setLabels(article.getPlaces());
+        classificationSubject.setRawData(article.getBodyWords());
+        return classificationSubject;
+    }
+
+    private static void countryClassification(List<ClassificationSubject> trainingArticles,
+                                              List<ClassificationSubject> testArticles) {
+
+        KNNClassifier knnClassifier = new KNNClassifier(3, trainingArticles,
+                new EuclideanMetric(),
+                new NGram());
+
+        AtomicInteger properlyClassifiedWestGermany = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedUSA = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedFrance = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedUK = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedCanada = new AtomicInteger(0);
+        AtomicInteger properlyClassifiedJapan = new AtomicInteger(0);
+
+        long testArticlesWestGermany = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("west-germany")).count();
+        long testArticlesUSA = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("usa")).count();
+        long testArticlesFrance = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("france")).count();
+        long testArticlesUK = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("uk")).count();
+        long testArticlesCanada = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("canada")).count();
+        long testArticlesJapan = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("japan")).count();
+
+        System.out.println("west-germany : " + testArticlesWestGermany);
+        System.out.println("usa: " + testArticlesUSA);
+        System.out.println("france : " + testArticlesFrance);
+        System.out.println("uk : " + testArticlesUK);
+        System.out.println("canada : " + testArticlesCanada);
+        System.out.println("japan : " + testArticlesJapan);
+
+        AtomicInteger properlyClassified = new AtomicInteger(0);
+
+        System.out.println("Performing classification task");
+        long startTime = System.nanoTime();
+        testArticles.forEach(testElement -> {
+
+            List<String> expectedLabel = testElement.getLabels();
+            String returnedLabel = knnClassifier.classifyObject(testElement);
+
+//            System.out.println("Article title : " + testElement.getTitle());
+            System.out.println("Article topics : " + testElement.getLabels());
+            System.out.println("Predicted article topic : " + returnedLabel);
+
+            if (expectedLabel.contains(returnedLabel)) {
+                properlyClassified.getAndIncrement();
+            }
+
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("west-germany")) {
+                properlyClassifiedWestGermany.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("usa")) {
+                properlyClassifiedUSA.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("france")) {
+                properlyClassifiedFrance.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("uk")) {
+                properlyClassifiedUK.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("canada")) {
+                properlyClassifiedCanada.getAndIncrement();
+            }
+            if (returnedLabel.equals(expectedLabel) && expectedLabel.equals("japan")) {
+                properlyClassifiedJapan.getAndIncrement();
+            }
+        });
+
+        long stopTime = System.nanoTime();
+        long totalTime = stopTime - startTime;
+
+        double percentWestGermany = (double) properlyClassifiedWestGermany.get() / (double) testArticlesWestGermany;
+        double percentUSA = (double) properlyClassifiedUSA.get() / (double) testArticlesUSA;
+        double percentFrance = (double) properlyClassifiedFrance.get() / (double) testArticlesFrance;
+        double percentUK = (double) properlyClassifiedUK.get() / (double) testArticlesUK;
+        double percentCanada = (double) properlyClassifiedCanada.get() / (double) testArticlesCanada;
+        double percentJapan = (double) properlyClassifiedJapan.get() / (double) testArticlesJapan;
+
+        System.out.println("Properly classified (west-germany): " +
+                properlyClassifiedWestGermany.get() + "/" + testArticlesWestGermany + ": " + percentWestGermany);
+
+        System.out.println("Properly classified (usa): " +
+                properlyClassifiedUSA.get() + "/" + testArticlesUSA + ": " + percentUSA);
+
+        System.out.println("Properly classified (france): "
+                + properlyClassifiedFrance.get() + "/" + testArticlesFrance + ": " + percentFrance);
+
+        System.out.println("Properly classified (uk): "
+                + properlyClassifiedUK.get() + "/" + testArticlesUK + ": " + percentUK);
+
+        System.out.println("Properly classified (canada): " +
+                properlyClassifiedCanada.get() + "/" + testArticlesCanada + ": " + percentCanada);
+
+        System.out.println("Properly classified (japan): " +
+                properlyClassifiedJapan.get() + "/" + testArticlesJapan + ": " + percentJapan);
+
     }
 }

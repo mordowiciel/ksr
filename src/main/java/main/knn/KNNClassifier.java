@@ -10,27 +10,22 @@ import java.util.stream.Collectors;
 
 import main.ClassificationSubject;
 import main.Distance;
-import main.FeatureExtractor;
 
 public class KNNClassifier {
 
     private final int kNeighboursCount;
     private final List<ClassificationSubject> trainingSet;
     private final Distance distanceProvider;
-    private final FeatureExtractor featureExtractor;
 
-    public KNNClassifier(int kNeighboursCount, List<ClassificationSubject> trainingSet, Distance distanceProvider,
-                         FeatureExtractor featureExtractor) {
+    public KNNClassifier(int kNeighboursCount, List<ClassificationSubject> trainingSet, Distance distanceProvider) {
         this.kNeighboursCount = kNeighboursCount;
         this.trainingSet = trainingSet;
         this.distanceProvider = distanceProvider;
-        this.featureExtractor = featureExtractor;
     }
 
     public String classifyObject(ClassificationSubject classificationObject) {
 
         Map<ClassificationSubject, Double> trainingSetDistances = new HashMap<>();
-//        Map<String, Double> classificationObjectNGrams = featureExtractor.extractFeatures(classificationObject.getRawData());
         Map<String, Double> classificationObjectFeatures = classificationObject.getFeatures();
 
         // Calculate distances of training objects

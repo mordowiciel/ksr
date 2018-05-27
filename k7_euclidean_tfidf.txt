@@ -1,7 +1,0 @@
-Properly classified (west-germany): 41/93: 0.44086021505376344
-Properly classified (usa): 3074/3192: 0.9630325814536341
-Properly classified (france): 19/70: 0.2714285714285714
-Properly classified (uk): 107/223: 0.4798206278026906
-Properly classified (canada): 57/250: 0.228
-Properly classified (japan): 82/172: 0.47674418604651164
-Finished classification task for test set. : 605

@@ -21,8 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 public class ReutersDataset extends Dataset<Article> {
 
     private final String directory;
+//    private Pattern EXTRACTION_PATTERN = Pattern.compile(
+//            "<DATE>(.*?)</DATE>.*?<TOPICS>(.*?)</TOPICS>.*?<PLACES>(.*?)</PLACES>.*?<TITLE>(.*?)</TITLE>" +
+//                    ".*?<BODY>(.*?)</BODY>");
+
     private Pattern EXTRACTION_PATTERN = Pattern.compile(
-            "<DATE>(.*?)</DATE>.*?<TOPICS>(.*?)</TOPICS>.*?<PLACES>(.*?)</PLACES>.*?<TITLE>(.*?)</TITLE>" +
+            "<TOPICS>(.*?)</TOPICS>.*?<PLACES>(.*?)</PLACES>" +
                     ".*?<BODY>(.*?)</BODY>");
 
     public ReutersDataset(String reutersDir) {
@@ -59,12 +63,14 @@ public class ReutersDataset extends Dataset<Article> {
         Matcher matcher = EXTRACTION_PATTERN.matcher(reuters_string);
         while (matcher.find()) {
             Article reuters = new Article();
-            reuters.setDate(matcher.group(1));
-            reuters.setTopics(parseList(matcher.group(2)));
-            reuters.setPlaces(parseList(matcher.group(3)));
-            reuters.setTitle(matcher.group(4).replaceAll("&lt;", "<"));
-
-            String articleBody = matcher.group(5).replaceAll("&lt;", "<");
+//            reuters.setDate(matcher.group(1));
+//            reuters.setTopics(parseList(matcher.group(2)));
+//            reuters.setPlaces(parseList(matcher.group(3)));
+//            reuters.setTitle(matcher.group(4).replaceAll("&lt;", "<"));
+////
+            reuters.setTopics(parseList(matcher.group(1)));
+            reuters.setPlaces(parseList(matcher.group(2)));
+            String articleBody = matcher.group(3).replaceAll("&lt;", "<");
             List<String> bodyWords = Arrays.asList(articleBody.split(" "));
             reuters.setBodyWords(bodyWords);
 
@@ -85,7 +91,6 @@ public class ReutersDataset extends Dataset<Article> {
         }
         return topicsList;
     }
-
 
 
     @Override

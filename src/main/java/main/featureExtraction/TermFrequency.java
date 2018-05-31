@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class TermFrequency implements FeatureExtractor {
 
-    public Map<String, Double> extractFeatures(List<String> rawData) {
+    public Map<String, Double> extractFeatures(List<String> rawData, double percentThreshold) {
 
         Map<String, Double> termFrequency = new LinkedHashMap<>();
 
@@ -21,16 +21,21 @@ public class TermFrequency implements FeatureExtractor {
             }
         }
 
-        return termFrequency.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> entry.getValue() / rawData.size()))
-                .entrySet()
+        System.out.println("Original size : " + termFrequency.size());
+        int endingIndex = (int) (percentThreshold * termFrequency.size());
+
+
+        Map<String, Double> returnedMap = termFrequency.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                .limit(endingIndex)
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 
+        System.out.println("New size : " + returnedMap.size());
+
+        return returnedMap;
 
     }
 }

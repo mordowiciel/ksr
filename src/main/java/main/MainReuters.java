@@ -43,8 +43,9 @@ public class MainReuters {
     public static void main(String[] args) throws IOException {
 
 
-        if (inputArgs.getFeatureExtractor().equals("ngrams")) {
-            featureExtractor = new NGram();
+        if (inputArgs.getFeatureExtractor().matches("^[0-9]grams")) {
+            int n = (int) inputArgs.getFeatureExtractor().charAt(0);
+            featureExtractor = new NGram(n);
         }
 
         if (inputArgs.getFeatureExtractor().equals("tf")) {
@@ -151,7 +152,8 @@ public class MainReuters {
         } else if (inputArgs.getLabels().equals("places")) {
             classificationSubject.setLabels(article.getPlaces());
         }
-        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords());
+        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords(), 0.5);
+        LOG.info("Features : " + features);
         classificationSubject.setFeatures(features);
 
         return classificationSubject;

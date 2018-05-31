@@ -16,13 +16,19 @@ import org.apache.log4j.Logger;
 
 import main.dataset.Article;
 import main.dataset.Dataset;
+import main.dataset.Preprocessing;
 import main.dataset.ReutersDataset;
+import main.distance.Distance;
+import main.distance.metrics.ChebyshevMetric;
+import main.distance.metrics.EuclideanMetric;
+import main.distance.metrics.ManhattanMetric;
+import main.distance.similarity.CosineAmplitude;
+import main.distance.similarity.ModuleExponent;
+import main.featureExtraction.FeatureExtractor;
+import main.featureExtraction.NGram;
+import main.featureExtraction.TermFrequency;
+import main.knn.ClassificationSubject;
 import main.knn.KNNClassifier;
-import main.metrics.ChebyshevMetric;
-import main.metrics.EuclideanMetric;
-import main.metrics.ManhattanMetric;
-import main.similarity.CosineAmplitude;
-import main.similarity.ModuleExponent;
 
 public class MainNews {
 
@@ -37,8 +43,6 @@ public class MainNews {
 
     public static void main(String[] args) throws IOException {
 
-//        CLIHandler cliHandler = new CLIHandler();
-//        inputArgs = cliHandler.processInputArgs(args);
 
         if (inputArgs.getFeatureExtractor().equals("ngrams")) {
             featureExtractor = new NGram();

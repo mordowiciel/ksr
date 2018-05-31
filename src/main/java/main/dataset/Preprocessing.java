@@ -1,4 +1,4 @@
-package main;
+package main.dataset;
 
 import java.util.Arrays;
 import java.util.List;
@@ -7,17 +7,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import main.dataset.Article;
-
 public class Preprocessing {
 
-//    public static void mergeTitleAndArticleBody(Article article) {
-//
-//        List<String> titleWords = new ArrayList<>(Arrays.asList(article.getTitle().split(" ")));
-//        titleWords.addAll(article.getBodyWords());
-//
-//        article.setBodyWords(titleWords);
-//    }
 
     public static void removeStopwords(Article article, Set<String> stopwords) {
 

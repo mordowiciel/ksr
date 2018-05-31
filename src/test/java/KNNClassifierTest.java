@@ -6,7 +6,7 @@
 //
 //import main.knn.ClassificationSubject;
 //import main.knn.KNNClassifier;
-//import main.metrics.EuclideanMetric;
+//import main.distance.metrics.EuclideanMetric;
 //
 //public class KNNClassifierTest {
 //

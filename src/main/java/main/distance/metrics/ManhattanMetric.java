@@ -1,10 +1,10 @@
-package main.metrics;
+package main.distance.metrics;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import main.Distance;
+import main.distance.Distance;
 
 public class ManhattanMetric implements Distance {
 

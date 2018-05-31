@@ -1,4 +1,4 @@
-package main;
+package main.knn;
 
 import java.util.List;
 import java.util.Map;

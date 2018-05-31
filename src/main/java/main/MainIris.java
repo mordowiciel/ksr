@@ -13,12 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import main.distance.Distance;
+import main.distance.metrics.ChebyshevMetric;
+import main.distance.metrics.EuclideanMetric;
+import main.distance.metrics.ManhattanMetric;
+import main.distance.similarity.CosineAmplitude;
+import main.distance.similarity.ModuleExponent;
+import main.knn.ClassificationSubject;
 import main.knn.KNNClassifier;
-import main.metrics.ChebyshevMetric;
-import main.metrics.EuclideanMetric;
-import main.metrics.ManhattanMetric;
-import main.similarity.CosineAmplitude;
-import main.similarity.ModuleExponent;
 
 public class MainIris {
 
@@ -35,8 +37,6 @@ public class MainIris {
         List<ClassificationSubject> irisData = extractIrisData();
         Collections.shuffle(irisData, new Random(92813L));
 
-//        CLIHandler cliHandler = new CLIHandler();
-//        inputArgs = cliHandler.processInputArgs(args);
 
         if (inputArgs.getDistance().equals("euclidean")) {
             distanceProvider = new EuclideanMetric();

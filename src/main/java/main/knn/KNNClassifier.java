@@ -8,8 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import main.ClassificationSubject;
-import main.Distance;
+import main.distance.Distance;
 
 public class KNNClassifier {
 

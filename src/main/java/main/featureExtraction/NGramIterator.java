@@ -1,4 +1,4 @@
-package main;
+package main.featureExtraction;
 
 import java.util.Iterator;
 

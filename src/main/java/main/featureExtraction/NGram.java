@@ -15,7 +15,7 @@ public class NGram implements FeatureExtractor {
     }
 
     @Override
-    public Map<String, Double> extractFeatures(List<String> rawData, double percentThreshold) {
+    public Map<String, Double> extractFeatures(List<String> rawData, int sizeThreshold) {
 
         Map<String, Double> nGramCounts = new LinkedHashMap<>();
 
@@ -35,7 +35,7 @@ public class NGram implements FeatureExtractor {
 
         return nGramCounts.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .limit(10)
+                .limit(sizeThreshold)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue() / rawData.size(),

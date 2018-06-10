@@ -3,10 +3,12 @@ package main;
 public class InputArgs {
 
     private int neighbours;
+    private int vectorSize;
     private String distance;
     private String featureExtractor;
     private String labels;
     private String dataset;
+    private String datasetPath;
 
     public int getNeighbours() {
         return neighbours;
@@ -46,5 +48,21 @@ public class InputArgs {
 
     public void setDataset(String dataset) {
         this.dataset = dataset;
+    }
+
+    public int getVectorSize() {
+        return vectorSize;
+    }
+
+    public void setVectorSize(int vectorSize) {
+        this.vectorSize = vectorSize;
+    }
+
+    public String getDatasetPath() {
+        return datasetPath;
+    }
+
+    public void setDatasetPath(String datasetPath) {
+        this.datasetPath = datasetPath;
     }
 }

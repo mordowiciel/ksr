@@ -63,6 +63,7 @@ public class MainIris {
         AtomicInteger properlyClassifiedIrisSetosa = new AtomicInteger(0);
         AtomicInteger properlyClassifiedIrisVersicolor = new AtomicInteger(0);
         AtomicInteger properlyClassifiedIrisVirginica = new AtomicInteger(0);
+        AtomicInteger properlyClassified = new AtomicInteger(0);
 
         long testArticlesIrisSetosa = testSet.stream().filter(testElement -> testElement.getLabels().get(0).equals("Iris-setosa")).count();
         long testArticlesIrisVersicolor = testSet.stream().filter(testElement -> testElement.getLabels().get(0).equals("Iris-versicolor")).count();
@@ -78,6 +79,9 @@ public class MainIris {
             LOG.info("Expected label : " + testElement.getLabels());
             LOG.info("Predicted label : " + predictedLabel);
 
+            if (testElement.getLabels().contains(predictedLabel)) {
+                properlyClassified.getAndIncrement();
+            }
             if (testElement.getLabels().contains(predictedLabel) && predictedLabel.equals("Iris-setosa")) {
                 properlyClassifiedIrisSetosa.getAndIncrement();
             }
@@ -92,20 +96,40 @@ public class MainIris {
         double percentIrisSetosa = (double) properlyClassifiedIrisSetosa.get() / (double) testArticlesIrisSetosa;
         double percentIrisVersicolor = (double) properlyClassifiedIrisVersicolor.get() / (double) testArticlesIrisVersicolor;
         double percentIrisVirginica = (double) properlyClassifiedIrisVirginica.get() / (double) testArticlesIrisVirginica;
+        double totalPercent = ((double) properlyClassified.get() / (double) testSet.size()) * 100.0;
 
-        LOG.info("Properly classified (iris-setosa): " +
-                properlyClassifiedIrisSetosa.get() + "/" + testArticlesIrisSetosa + ": " + percentIrisSetosa);
+        long arithmeticAverage = properlyClassified.get() / 6;
 
-        LOG.info("Properly classified (iris-versicolor): " +
-                properlyClassifiedIrisVersicolor.get() + "/" + testArticlesIrisVersicolor + ": " + percentIrisVersicolor);
+        long weights = properlyClassifiedIrisSetosa.get() * testArticlesIrisSetosa
+                + properlyClassifiedIrisVersicolor.get() * testArticlesIrisVersicolor
+                + properlyClassifiedIrisVirginica.get() * testArticlesIrisVirginica;
 
-        LOG.info("Properly classified (iris-virginica): "
-                + properlyClassifiedIrisVirginica.get() + "/" + testArticlesIrisVirginica + ": " + percentIrisVirginica);
+        long sum = testArticlesIrisSetosa + testArticlesIrisVersicolor + testArticlesIrisVirginica;
+        long weightedAverage = weights / sum;
+
+        LOG.info("iris-setosa " +
+                properlyClassifiedIrisSetosa.get() + " " + testArticlesIrisSetosa + " " + percentIrisSetosa);
+
+        LOG.info("iris-versicolor " +
+                properlyClassifiedIrisVersicolor.get() + " " + testArticlesIrisVersicolor + " " + percentIrisVersicolor);
+
+        LOG.info("iris-virginica "
+                + properlyClassifiedIrisVirginica.get() + " " + testArticlesIrisVirginica + " " + percentIrisVirginica);
+
+        LOG.info("total percent " +
+                properlyClassified.get() + " " + testSet.size() + " " + String.format("%.2f", totalPercent));
+
+        LOG.info("arithmetic average " +
+                arithmeticAverage + " " + testSet.size() + " " +
+                String.format("%.2f", (double) arithmeticAverage / testSet.size()));
+
+        LOG.info("weighted average " + weightedAverage + " " + testSet.size() + " " +
+                String.format("%.2f", (double) weightedAverage / testSet.size()));
     }
 
     private static List<ClassificationSubject> extractIrisData() throws IOException {
 
-        List<String> lines = FileUtils.readLines(new File("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\iris_data\\iris.txt"),
+        List<String> lines = FileUtils.readLines(new File(inputArgs.getDatasetPath()),
                 "utf-8");
 
         List<ClassificationSubject> classificationSubjects = new ArrayList<>();

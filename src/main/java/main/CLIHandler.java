@@ -36,9 +36,17 @@ public class CLIHandler {
     private static final String DATASET_PARAM_NAME = "dataset";
     private static final String DATASET_PARAM_DESC = "Dataset to choose";
 
+    private static final String DATASET_PATH_PARAM = "p";
+    private static final String DATASET_PATH_PARAM_NAME = "dataset-path";
+    private static final String DATASET_PATH_PARAM_DESC = "Path leading to the dataset files directory";
+
     private static final String LABELS_PARAM = "lb";
     private static final String LABELS_PARAM_NAME = "labels";
     private static final String LABELS_PARAM_DESC = "Labels to perform classification on";
+
+    private static final String VECTOR_SIZE_PARAM = "v";
+    private static final String VECTOR_SIZE_PARAM_NAME = "vector-size";
+    private static final String VECTOR_SIZE_PARAM_DESC = "Vector size threshold";
 
     private static final String HELP_PARAM = "h";
     private static final String HELP_PARAM_NAME = "help";
@@ -95,6 +103,18 @@ public class CLIHandler {
                 inputArgs.setDataset(dataset);
             }
 
+            if (isOptionProvided(cmd, DATASET_PATH_PARAM_NAME)) {
+                String datasetPath = cmd.getOptionValue(DATASET_PATH_PARAM_NAME);
+                inputArgs.setDatasetPath(datasetPath);
+            }
+
+            if (isOptionProvided(cmd, VECTOR_SIZE_PARAM_NAME)) {
+                String vectorSize = cmd.getOptionValue(VECTOR_SIZE_PARAM_NAME);
+                inputArgs.setVectorSize(Integer.valueOf(vectorSize));
+            } else {
+                inputArgs.setVectorSize(Integer.MAX_VALUE);
+            }
+
             addLoggerFileAppender(inputArgs, Level.INFO);
 
         } catch (MissingOptionException moe) {
@@ -116,16 +136,27 @@ public class CLIHandler {
     private void addLoggerFileAppender(InputArgs inputArgs, Level threshold) throws IOException {
 
         String logFilename;
+
         if (inputArgs.getFeatureExtractor() == null) {
-            logFilename = inputArgs.getDataset() + "_" + "k" + inputArgs.getNeighbours() + "_" + inputArgs.getDistance() + "_" + inputArgs.getLabels();
+            logFilename = inputArgs.getDataset() + "_" + "k" + inputArgs.getNeighbours() + "_"
+                    + inputArgs.getDistance() + "_" + inputArgs.getLabels() + inputArgs.getVectorSize()
+                    + "_" + "vs" + inputArgs.getVectorSize();
+            ;
         } else {
-            logFilename = inputArgs.getDataset() + "_" + "k" + inputArgs.getNeighbours() + "_" + inputArgs.getDistance() + "_" + inputArgs.getFeatureExtractor() + "_" + inputArgs.getLabels();
+            logFilename = inputArgs.getDataset() + "_" + "k" + inputArgs.getNeighbours() + "_"
+                    + inputArgs.getDistance() + "_" + inputArgs.getFeatureExtractor() + "_" + inputArgs.getLabels()
+                    + "_" + "vs" + inputArgs.getVectorSize();
         }
 
-        FileAppender fileAppender = new FileAppender(new PatternLayout(LOGGER_PATTERN_LAYOUT), inputArgs.getDataset() + "/" + logFilename, false);
+        String logPath = inputArgs.getDataset() + "/" +
+                inputArgs.getFeatureExtractor() + "/" +
+                inputArgs.getLabels() + "/" +
+                logFilename;
+
+        FileAppender fileAppender = new FileAppender(new PatternLayout(LOGGER_PATTERN_LAYOUT), logPath, false);
         fileAppender.setThreshold(threshold);
         Logger.getRootLogger().addAppender(fileAppender);
-        LOG.info(threshold.toString() + " log will be saved at " + logFilename);
+        LOG.info(threshold.toString() + " log will be saved at " + logPath);
     }
 
     private void printHelp() {
@@ -157,6 +188,11 @@ public class CLIHandler {
             printHelp();
             System.exit(1);
             throw new MissingOptionException("No dataset provided.");
+        }
+        if (!isOptionProvided(cmd, DATASET_PATH_PARAM_NAME)) {
+            printHelp();
+            System.exit(1);
+            throw new MissingOptionException("No dataset path provided.");
         }
     }
 
@@ -191,6 +227,18 @@ public class CLIHandler {
                         .argName(DATASET_PARAM_NAME + "_path")
                         .longOpt(DATASET_PARAM_NAME)
                         .desc(DATASET_PARAM_DESC)
+                        .build())
+                .addOption(Option.builder(DATASET_PATH_PARAM)
+                        .hasArg(true)
+                        .argName(DATASET_PATH_PARAM_NAME + "_path")
+                        .longOpt(DATASET_PATH_PARAM_NAME)
+                        .desc(DATASET_PATH_PARAM_DESC)
+                        .build())
+                .addOption(Option.builder(VECTOR_SIZE_PARAM)
+                        .hasArg(true)
+                        .argName(VECTOR_SIZE_PARAM_NAME)
+                        .longOpt(VECTOR_SIZE_PARAM_NAME)
+                        .desc(VECTOR_SIZE_PARAM_DESC)
                         .build())
                 .addOption(Option.builder(HELP_PARAM)
                         .hasArg(false)

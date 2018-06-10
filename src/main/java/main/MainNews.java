@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -82,16 +83,28 @@ public class MainNews {
         List<ClassificationSubject> trainingArticles = classificationSubjects.subList(0, trainingSetSize);
         List<ClassificationSubject> testArticles = classificationSubjects.subList(trainingSetSize, allArticles.size());
 
+
+        long startTime = System.currentTimeMillis();
+
         if (inputArgs.getLabels().equals("topics")) {
             topicsClassification(trainingArticles, testArticles);
         } else if (inputArgs.getLabels().equals("places")) {
             countryClassification(trainingArticles, testArticles);
         }
+
+        long stopTime = System.currentTimeMillis();
+        long elapsed = stopTime - startTime;
+        LOG.info("Time : " + TimeUnit.SECONDS.convert(elapsed, TimeUnit.NANOSECONDS));
     }
 
     private static void performDataPreprocessing(List<Article> articleList) throws IOException {
 
-        Set<String> stopwords = new HashSet<>(FileUtils.readLines(new File("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\src\\main\\resources\\stopwords.txt"), "utf-8"));
+        File stopwordsFile = new File(MainReuters.class
+                .getClassLoader()
+                .getResource("stopwords.txt")
+                .getFile());
+
+        Set<String> stopwords = new HashSet<>(FileUtils.readLines(stopwordsFile, "utf-8"));
         articleList.forEach(article -> {
             Preprocessing.removeStopwords(article, stopwords);
             Preprocessing.removeSpecialCharacters(article);
@@ -100,7 +113,7 @@ public class MainNews {
 
     private static List<Article> loadData() {
 
-        Dataset<Article> reutersDataset = new ReutersDataset("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\news_data");
+        Dataset<Article> reutersDataset = new ReutersDataset(inputArgs.getDatasetPath());
         List<Article> allArticles = reutersDataset.getAll();
         Collections.shuffle(allArticles, new Random(92831L));
         return allArticles;
@@ -115,7 +128,7 @@ public class MainNews {
         } else if (inputArgs.getLabels().equals("places")) {
             classificationSubject.setLabels(article.getPlaces());
         }
-        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords(), 0.5);
+        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords(), inputArgs.getVectorSize());
         LOG.info("Features : " + features);
         classificationSubject.setFeatures(features);
 
@@ -132,6 +145,8 @@ public class MainNews {
         AtomicInteger properlyClassifiedRussia = new AtomicInteger(0);
         AtomicInteger properlyClassifiedEurope = new AtomicInteger(0);
         AtomicInteger properlyClassifiedAsia = new AtomicInteger(0);
+        AtomicInteger properlyClassified = new AtomicInteger(0);
+
 
         long testArticlesNorthAmerica = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("north-america")).count();
         long testArticlesRussia = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("russia")).count();
@@ -144,8 +159,10 @@ public class MainNews {
             List<String> expectedLabel = testElement.getLabels();
             String returnedLabel = knnClassifier.classifyObject(testElement);
 
-//            LOG.info("Article countries : " + testElement.getLabels());
-//            LOG.info("Predicted article country : " + returnedLabel);
+            if (expectedLabel.contains(returnedLabel)) {
+                properlyClassified.getAndIncrement();
+            }
+
 
             if (expectedLabel.contains(returnedLabel) && expectedLabel.contains("north-america")) {
                 properlyClassifiedNorthAmerica.getAndIncrement();
@@ -165,18 +182,40 @@ public class MainNews {
         double percentRussia = (double) properlyClassifiedRussia.get() / (double) testArticlesRussia;
         double percentEurope = (double) properlyClassifiedEurope.get() / (double) testArticlesEurope;
         double percentAsia = (double) properlyClassifiedAsia.get() / (double) testArticlesAsia;
+        double totalPercent = (double) properlyClassified.get() / (double) testArticles.size();
 
-        LOG.info("Properly classified (north-america): " +
-                properlyClassifiedNorthAmerica.get() + "/" + testArticlesNorthAmerica + ": " + percentNorthAmerica);
+        long arithmeticAverage = properlyClassified.get() / 6;
 
-        LOG.info("Properly classified (russia): " +
-                properlyClassifiedRussia.get() + "/" + testArticlesRussia + ": " + percentRussia);
+        long weights = properlyClassifiedAsia.get() * testArticlesAsia
+                + properlyClassifiedEurope.get() * testArticlesEurope
+                + properlyClassifiedNorthAmerica.get() * testArticlesNorthAmerica
+                + properlyClassifiedRussia.get() * testArticlesRussia;
 
-        LOG.info("Properly classified (europe): "
-                + properlyClassifiedEurope.get() + "/" + testArticlesEurope + ": " + percentEurope);
+        long sum = testArticlesAsia + testArticlesEurope + testArticlesNorthAmerica + testArticlesRussia;
 
-        LOG.info("Properly classified (asia): "
-                + properlyClassifiedAsia.get() + "/" + testArticlesAsia + ": " + percentAsia);
+        long weightedAverage = weights / sum;
+
+        LOG.info("north-america " +
+                properlyClassifiedNorthAmerica.get() + " " + testArticlesNorthAmerica + " " + percentNorthAmerica);
+
+        LOG.info("russia " +
+                properlyClassifiedRussia.get() + " " + testArticlesRussia + " " + percentRussia);
+
+        LOG.info("europe "
+                + properlyClassifiedEurope.get() + " " + testArticlesEurope + " " + percentEurope);
+
+        LOG.info("asia "
+                + properlyClassifiedAsia.get() + " " + testArticlesAsia + " " + percentAsia);
+
+        LOG.info("total percent " +
+                properlyClassified.get() + " " + testArticles.size() + " " + String.format("%.2f", totalPercent));
+
+        LOG.info("arithmetic average " +
+                arithmeticAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) arithmeticAverage / testArticles.size()));
+
+        LOG.info("weighted average " + weightedAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) weightedAverage / testArticles.size()));
 
     }
 
@@ -191,6 +230,7 @@ public class MainNews {
         AtomicInteger properlyClassifiedPolitics = new AtomicInteger(0);
         AtomicInteger properlyClassifiedSports = new AtomicInteger(0);
         AtomicInteger properlyClassifiedTechnologyScience = new AtomicInteger(0);
+        AtomicInteger properlyClassified = new AtomicInteger(0);
 
         long testArticlesCrime = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("crime")).count();
         long testArticlesBusiness = testArticles.stream().filter(testElement -> testElement.getLabels().get(0).equals("business")).count();
@@ -210,9 +250,9 @@ public class MainNews {
             List<String> expectedLabel = testElement.getLabels();
             String returnedLabel = knnClassifier.classifyObject(testElement);
 
-//            LOG.info("Article topics : " + testElement.getLabels());
-//            LOG.info("Predicted article topic : " + returnedLabel);
-
+            if (expectedLabel.contains(returnedLabel)) {
+                properlyClassified.getAndIncrement();
+            }
 
             if (expectedLabel.contains(returnedLabel) && expectedLabel.contains("crime")) {
                 properlyClassifiedCrime.getAndIncrement();
@@ -236,21 +276,44 @@ public class MainNews {
         double percentPolitics = (double) properlyClassifiedPolitics.get() / (double) testArticlesPolitics;
         double percentSports = (double) properlyClassifiedSports.get() / (double) testArticlesSports;
         double percentTechnologyScience = (double) properlyClassifiedTechnologyScience.get() / (double) testArticlesTechnologyScience;
+        double totalPercent = ((double) properlyClassified.get() / (double) testArticles.size()) * 100.0;
 
-        LOG.info("Properly classified (crime): " +
-                properlyClassifiedCrime.get() + "/" + testArticlesCrime + ": " + percentCrime);
+        long arithmeticAverage = properlyClassified.get() / 6;
 
-        LOG.info("Properly classified (business): " +
-                properlyClassifiedBusiness.get() + "/" + testArticlesBusiness + ": " + percentBusiness);
+        long weights = properlyClassifiedCrime.get() * testArticlesCrime
+                + properlyClassifiedBusiness.get() * testArticlesBusiness
+                + properlyClassifiedPolitics.get() * testArticlesPolitics
+                + properlyClassifiedSports.get() * testArticlesSports
+                + properlyClassifiedTechnologyScience.get() * testArticlesTechnologyScience;
 
-        LOG.info("Properly classified (politics): "
-                + properlyClassifiedPolitics.get() + "/" + testArticlesPolitics + ": " + percentPolitics);
+        long sum = testArticlesBusiness + testArticlesCrime + testArticlesPolitics + testArticlesSports
+                + testArticlesTechnologyScience;
 
-        LOG.info("Properly classified (sports): "
-                + properlyClassifiedSports.get() + "/" + testArticlesSports + ": " + percentSports);
+        long weightedAverage = weights / sum;
 
-        LOG.info("Properly classified (technology-science): "
-                + properlyClassifiedTechnologyScience.get() + "/" + testArticlesTechnologyScience + ": " + percentTechnologyScience);
+        LOG.info("crime " +
+                properlyClassifiedCrime.get() + " " + testArticlesCrime + " " + percentCrime);
 
+        LOG.info("business " +
+                properlyClassifiedBusiness.get() + " " + testArticlesBusiness + " " + percentBusiness);
+
+        LOG.info("politics "
+                + properlyClassifiedPolitics.get() + " " + testArticlesPolitics + " " + percentPolitics);
+
+        LOG.info("sports "
+                + properlyClassifiedSports.get() + " " + testArticlesSports + " " + percentSports);
+
+        LOG.info("technology-science "
+                + properlyClassifiedTechnologyScience.get() + " " + testArticlesTechnologyScience + " " + percentTechnologyScience);
+
+        LOG.info("total percent " +
+                properlyClassified.get() + " " + testArticles.size() + " " + String.format("%.2f", totalPercent));
+
+        LOG.info("arithmetic average " +
+                arithmeticAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) arithmeticAverage / testArticles.size()));
+
+        LOG.info("weighted average " + weightedAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) weightedAverage / testArticles.size()));
     }
 }

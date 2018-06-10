@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class MainReuters {
 
 
         if (inputArgs.getFeatureExtractor().matches("^[0-9]grams")) {
-            int n = (int) inputArgs.getFeatureExtractor().charAt(0);
+            int n = Integer.valueOf(inputArgs.getFeatureExtractor().substring(0, 1));
             featureExtractor = new NGram(n);
         }
 
@@ -89,16 +90,28 @@ public class MainReuters {
         List<ClassificationSubject> trainingArticles = classificationSubjects.subList(0, trainingSetSize);
         List<ClassificationSubject> testArticles = classificationSubjects.subList(trainingSetSize, allArticles.size());
 
+        long startTime = System.currentTimeMillis();
+
         if (inputArgs.getLabels().equals("topics")) {
             topicsClassification(trainingArticles, testArticles);
         } else if (inputArgs.getLabels().equals("places")) {
             countryClassification(trainingArticles, testArticles);
         }
+
+        long stopTime = System.currentTimeMillis();
+        long elapsed = stopTime - startTime;
+        LOG.info("Time : " + TimeUnit.SECONDS.convert(elapsed, TimeUnit.MILLISECONDS));
     }
 
     private static void performDataPreprocessing(List<Article> articleList) throws IOException {
 
-        Set<String> stopwords = new HashSet<>(FileUtils.readLines(new File("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\src\\main\\resources\\stopwords.txt"), "utf-8"));
+//        Set<String> stopwords = new HashSet<>(FileUtils.readLines(new File("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\src\\main\\resources\\stopwords.txt"), "utf-8"));
+        File stopwordsFile = new File(MainReuters.class
+                .getClassLoader()
+                .getResource("stopwords.txt")
+                .getFile());
+
+        Set<String> stopwords = new HashSet<>(FileUtils.readLines(stopwordsFile, "utf-8"));
         articleList.forEach(article -> {
             Preprocessing.removeStopwords(article, stopwords);
             Preprocessing.removeSpecialCharacters(article);
@@ -107,7 +120,7 @@ public class MainReuters {
 
     private static List<Article> loadDataWithOnlyOneCountry() {
 
-        Dataset<Article> reutersDataset = new ReutersDataset("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\reuters_data");
+        Dataset<Article> reutersDataset = new ReutersDataset(inputArgs.getDatasetPath());
         List<String> allowedCountries = new ArrayList<>();
         allowedCountries.add("west-germany");
         allowedCountries.add("usa");
@@ -127,7 +140,7 @@ public class MainReuters {
 
     private static List<Article> loadDataWithOnlyOneTopic() {
 
-        Dataset<Article> reutersDataset = new ReutersDataset("C:\\Users\\marcinis\\Politechnika\\KSR\\ksr\\reuters_data");
+        Dataset<Article> reutersDataset = new ReutersDataset(inputArgs.getDatasetPath());
         List<String> allowedTopics = new ArrayList<>();
         allowedTopics.add("money-fx");
         allowedTopics.add("acq");
@@ -152,8 +165,7 @@ public class MainReuters {
         } else if (inputArgs.getLabels().equals("places")) {
             classificationSubject.setLabels(article.getPlaces());
         }
-        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords(), 0.5);
-        LOG.info("Features : " + features);
+        Map<String, Double> features = featureExtractor.extractFeatures(article.getBodyWords(), inputArgs.getVectorSize());
         classificationSubject.setFeatures(features);
 
         return classificationSubject;
@@ -195,9 +207,6 @@ public class MainReuters {
             List<String> expectedLabel = testElement.getLabels();
             String returnedLabel = knnClassifier.classifyObject(testElement);
 
-//            LOG.info("Article countries : " + testElement.getLabels());
-//            LOG.info("Predicted article country : " + returnedLabel);
-
             if (expectedLabel.contains(returnedLabel)) {
                 properlyClassified.getAndIncrement();
             }
@@ -225,30 +234,56 @@ public class MainReuters {
         long stopTime = System.nanoTime();
         long totalTime = stopTime - startTime;
 
-        double percentWestGermany = (double) properlyClassifiedWestGermany.get() / (double) testArticlesWestGermany;
-        double percentUSA = (double) properlyClassifiedUSA.get() / (double) testArticlesUSA;
-        double percentFrance = (double) properlyClassifiedFrance.get() / (double) testArticlesFrance;
-        double percentUK = (double) properlyClassifiedUK.get() / (double) testArticlesUK;
-        double percentCanada = (double) properlyClassifiedCanada.get() / (double) testArticlesCanada;
-        double percentJapan = (double) properlyClassifiedJapan.get() / (double) testArticlesJapan;
+        double percentWestGermany = ((double) properlyClassifiedWestGermany.get() / (double) testArticlesWestGermany) * 100.0;
+        double percentUSA = ((double) properlyClassifiedUSA.get() / (double) testArticlesUSA) * 100.0;
+        double percentFrance = ((double) properlyClassifiedFrance.get() / (double) testArticlesFrance) * 100.0;
+        double percentUK = ((double) properlyClassifiedUK.get() / (double) testArticlesUK) * 100.0;
+        double percentCanada = ((double) properlyClassifiedCanada.get() / (double) testArticlesCanada) * 100.0;
+        double percentJapan = ((double) properlyClassifiedJapan.get() / (double) testArticlesJapan) * 100.0;
+        double totalPercent = ((double) properlyClassified.get() / (double) testArticles.size()) * 100.0;
 
-        LOG.info("Properly classified (west-germany): " +
-                properlyClassifiedWestGermany.get() + "/" + testArticlesWestGermany + ": " + percentWestGermany);
+        long arithmeticAverage = properlyClassified.get() / 6;
 
-        LOG.info("Properly classified (usa): " +
-                properlyClassifiedUSA.get() + "/" + testArticlesUSA + ": " + percentUSA);
+        long weights = properlyClassifiedWestGermany.get() * testArticlesWestGermany
+                + properlyClassifiedUSA.get() * testArticlesUSA
+                + properlyClassifiedFrance.get() * testArticlesFrance
+                + properlyClassifiedUK.get() * testArticlesUK
+                + properlyClassifiedCanada.get() * testArticlesCanada
+                + properlyClassifiedJapan.get() * testArticlesJapan;
 
-        LOG.info("Properly classified (france): "
-                + properlyClassifiedFrance.get() + "/" + testArticlesFrance + ": " + percentFrance);
+        long sum = testArticlesWestGermany + testArticlesUSA + testArticlesFrance + testArticlesUK
+                + testArticlesCanada + testArticlesJapan;
 
-        LOG.info("Properly classified (uk): "
-                + properlyClassifiedUK.get() + "/" + testArticlesUK + ": " + percentUK);
+        long weightedAverage = weights / sum;
 
-        LOG.info("Properly classified (canada): " +
-                properlyClassifiedCanada.get() + "/" + testArticlesCanada + ": " + percentCanada);
 
-        LOG.info("Properly classified (japan): " +
-                properlyClassifiedJapan.get() + "/" + testArticlesJapan + ": " + percentJapan);
+        LOG.info("west-germany " +
+                properlyClassifiedWestGermany.get() + " " + testArticlesWestGermany + " " + String.format("%.2f", percentWestGermany));
+
+        LOG.info("usa " +
+                properlyClassifiedUSA.get() + " " + testArticlesUSA + " " + String.format("%.2f", percentUSA));
+
+        LOG.info("france "
+                + properlyClassifiedFrance.get() + " " + testArticlesFrance + " " + String.format("%.2f", percentFrance));
+
+        LOG.info("uk "
+                + properlyClassifiedUK.get() + " " + testArticlesUK + " " + String.format("%.2f", percentUK));
+
+        LOG.info("canada " +
+                properlyClassifiedCanada.get() + " " + testArticlesCanada + " " + String.format("%.2f", percentCanada));
+
+        LOG.info("japan " +
+                properlyClassifiedJapan.get() + " " + testArticlesJapan + " " + String.format("%.2f", percentJapan));
+
+        LOG.info("total percent " +
+                properlyClassified.get() + " " + testArticles.size() + " " + String.format("%.2f", totalPercent));
+
+        LOG.info("arithmetic average " +
+                arithmeticAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) arithmeticAverage / testArticles.size()));
+
+        LOG.info("weighted average " + weightedAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) weightedAverage / testArticles.size()));
 
     }
 
@@ -281,9 +316,6 @@ public class MainReuters {
             List<String> expectedLabel = testElement.getLabels();
             String returnedLabel = knnClassifier.classifyObject(testElement);
 
-//            LOG.info("Article topics : " + testElement.getLabels());
-//            LOG.info("Predicted article topic : " + returnedLabel);
-
             if (expectedLabel.contains(returnedLabel)) {
                 properlyClassified.getAndIncrement();
             }
@@ -302,23 +334,42 @@ public class MainReuters {
             }
         });
 
-        double percentMoneyFX = (double) properlyClassifiedMoneyFX.get() / (double) testArticlesMoneyFX;
-        double percentAcq = (double) properlyClassifiedAcq.get() / (double) testArticlesAcq;
-        double percentEarn = (double) properlyClassifiedEarn.get() / (double) testArticlesEarn;
-        double percentInterest = (double) properlyClassifiedInterest.get() / (double) testArticlesInterest;
+        double percentMoneyFX = ((double) properlyClassifiedMoneyFX.get() / (double) testArticlesMoneyFX) * 100.0;
+        double percentAcq = ((double) properlyClassifiedAcq.get() / (double) testArticlesAcq) * 100.0;
+        double percentEarn = ((double) properlyClassifiedEarn.get() / (double) testArticlesEarn) * 100.0;
+        double percentInterest = ((double) properlyClassifiedInterest.get() / (double) testArticlesInterest) * 100.0;
+        double totalPercent = ((double) properlyClassified.get() / (double) testArticles.size()) * 100.0;
 
-        LOG.info("Properly classified (money-fx): " +
-                properlyClassifiedMoneyFX.get() + "/" + testArticlesMoneyFX + ": " + percentMoneyFX);
+        long arithmeticAverage = properlyClassified.get() / 6;
 
-        LOG.info("Properly classified (acq): " +
-                properlyClassifiedAcq.get() + "/" + testArticlesAcq + ": " + percentAcq);
+        long weights = properlyClassifiedMoneyFX.get() * testArticlesMoneyFX
+                + properlyClassifiedAcq.get() * testArticlesAcq
+                + properlyClassifiedEarn.get() * testArticlesEarn
+                + properlyClassifiedInterest.get() * testArticlesInterest;
 
-        LOG.info("Properly classified (earn): "
-                + properlyClassifiedEarn.get() + "/" + testArticlesEarn + ": " + percentEarn);
+        long sum = testArticlesAcq + testArticlesEarn + testArticlesInterest + testArticlesMoneyFX;
+        long weightedAverage = weights / sum;
 
-        LOG.info("Properly classified (interest): "
-                + properlyClassifiedInterest.get() + "/" + testArticlesInterest + ": " + percentInterest);
+        LOG.info("money-fx " +
+                properlyClassifiedMoneyFX.get() + " " + testArticlesMoneyFX + " " + percentMoneyFX);
 
-        LOG.info("Properly clasified : " + properlyClassified + "/" + testArticles.size());
+        LOG.info("acq " +
+                properlyClassifiedAcq.get() + " " + testArticlesAcq + " " + percentAcq);
+
+        LOG.info("earn "
+                + properlyClassifiedEarn.get() + " " + testArticlesEarn + " " + percentEarn);
+
+        LOG.info("interest "
+                + properlyClassifiedInterest.get() + " " + testArticlesInterest + " " + percentInterest);
+
+        LOG.info("total percent " +
+                properlyClassified.get() + " " + testArticles.size() + " " + String.format("%.2f", totalPercent));
+
+        LOG.info("arithmetic average " +
+                arithmeticAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) arithmeticAverage / testArticles.size()));
+
+        LOG.info("weighted average " + weightedAverage + " " + testArticles.size() + " " +
+                String.format("%.2f", (double) weightedAverage / testArticles.size()));
     }
 }
